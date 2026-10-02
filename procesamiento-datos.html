@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundamentos del Procesamiento de Datos | Ingeniería de Sistemas</title>
+<style>
+/* ============ VARIABLES Y RESET ============ */
+:root{
+  --bg:#0b1220;
+  --bg-soft:#111a2e;
+  --surface:#16213a;
+  --surface-2:#1e2b47;
+  --border:#2a3a5c;
+  --primary:#38bdf8;
+  --primary-dark:#0284c7;
+  --secondary:#a78bfa;
+  --accent:#f472b6;
+  --success:#34d399;
+  --warning:#fbbf24;
+  --danger:#f87171;
+  --text:#e6edf7;
+  --text-muted:#93a4c0;
+  --radius:14px;
+  --shadow:0 8px 28px rgba(0,0,0,.35);
+  --font:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:16px;
+  overflow-x:hidden;
+}
+body.light{
+  --bg:#f6f8fc; --bg-soft:#eef2f9; --surface:#ffffff; --surface-2:#f1f5fb;
+  --border:#dbe3ef; --text:#12203a; --text-muted:#5a6b88;
+  --shadow:0 8px 28px rgba(20,40,80,.10);
+}
+img{max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ============ LAYOUT ============ */
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{
+  width:280px;flex-shrink:0;
+  background:var(--bg-soft);
+  border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;
+  padding:22px 16px 40px;
+  transition:transform .3s ease;
+  z-index:60;
+}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:0 6px}
+.brand .logo{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:grid;place-items:center;font-size:22px;
+  box-shadow:0 4px 16px rgba(56,189,248,.35);
+}
+.brand h1{font-size:.95rem;font-weight:700;line-height:1.25;letter-spacing:.2px}
+.brand span{font-size:.72rem;color:var(--text-muted);font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+
+.nav-group{margin-bottom:18px}
+.nav-group-title{
+  font-size:.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text-muted);padding:0 10px;margin-bottom:8px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:10px;
+  font-size:.87rem;color:var(--text-muted);
+  transition:all .18s ease;font-weight:500;
+  border-left:3px solid transparent;
+}
+.nav-link:hover{background:var(--surface);color:var(--text);text-decoration:none}
+.nav-link.active{
+  background:linear-gradient(90deg,rgba(56,189,248,.16),transparent);
+  color:var(--primary);border-left-color:var(--primary);font-weight:600;
+}
+.nav-link .ico{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+
+/* PROGRESO GLOBAL EN SIDEBAR */
+.side-progress{
+  margin-top:26px;padding:16px;border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+}
+.side-progress h4{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px}
+.progress-track{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.progress-fill{
+  height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  transition:width .5s ease;
+}
+.side-progress p{font-size:.76rem;color:var(--text-muted);margin-top:9px}
+
+/* CONTENIDO */
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(11,18,32,.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:12px 26px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+body.light .topbar{background:rgba(246,248,252,.9)}
+.topbar .crumb{font-size:.82rem;color:var(--text-muted)}
+.topbar .crumb strong{color:var(--primary)}
+.topbar-tools{display:flex;gap:10px;align-items:center}
+.tool-btn{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:grid;place-items:center;font-size:1rem;
+  transition:all .2s;
+}
+.tool-btn:hover{border-color:var(--primary);transform:translateY(-2px)}
+.menu-btn{display:none}
+
+/* BARRA DE LECTURA */
+.read-bar{height:3px;background:transparent;position:sticky;top:62px;z-index:49}
+.read-bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .1s linear}
+
+/* MAIN */
+main{padding:0 26px 90px;max-width:1080px;margin:0 auto;width:100%}
+
+section{padding:52px 0;border-bottom:1px dashed var(--border)}
+section:last-of-type{border-bottom:none}
+
+/* HERO */
+.hero{
+  padding:64px 0 48px;text-align:center;border-bottom:none;
+}
+.hero .tag{
+  display:inline-block;padding:6px 16px;border-radius:99px;
+  background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);
+  color:var(--primary);font-size:.76rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:22px;
+}
+.hero h1{
+  font-size:clamp(1.9rem,4.5vw,3.1rem);line-height:1.15;font-weight:800;
+  margin-bottom:18px;letter-spacing:-.5px;
+}
+.hero h1 .grad{
+  background:linear-gradient(120deg,var(--primary),var(--secondary),var(--accent));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{font-size:1.05rem;color:var(--text-muted);max-width:680px;margin:0 auto 32px}
+.hero-stats{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:34px}
+.stat{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 24px;min-width:130px;
+  transition:transform .25s,border-color .25s;
+}
+.stat:hover{transform:translateY(-4px);border-color:var(--primary)}
+.stat b{display:block;font-size:1.6rem;color:var(--primary);font-weight:800;line-height:1.1}
+.stat span{font-size:.76rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px}
+
+/* TÍTULOS DE SECCIÓN */
+.sec-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px}
+.sec-num{
+  flex-shrink:0;width:46px;height:46px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:grid;place-items:center;font-weight:800;font-size:1.1rem;color:#04121f;
+  box-shadow:0 6px 18px rgba(56,189,248,.3);
+}
+.sec-head h2{font-size:clamp(1.35rem,3vw,1.85rem);font-weight:800;line-height:1.25;letter-spacing:-.3px}
+.sec-head p{font-size:.92rem;color:var(--text-muted);margin-top:4px}
+
+h3{font-size:1.15rem;font-weight:700;margin:30px 0 12px;color:var(--primary)}
+h4{font-size:1rem;font-weight:700;margin:20px 0 8px}
+p{margin-bottom:14px;color:var(--text)}
+ul,ol{margin:0 0 16px 22px;color:var(--text)}
+li{margin-bottom:8px}
+strong{color:#fff;font-weight:700}
+body.light strong{color:#0b1220}
+
+/* CALLOUTS */
+.callout{
+  border-radius:var(--radius);padding:18px 20px;margin:22px 0;
+  border-left:4px solid var(--primary);
+  background:linear-gradient(90deg,rgba(56,189,248,.09),transparent);
+}
+.callout.tip{border-left-color:var(--success);background:linear-gradient(90deg,rgba(52,211,153,.09),transparent)}
+.callout.warn{border-left-color:var(--warning);background:linear-gradient(90deg,rgba(251,191,36,.09),transparent)}
+.callout.key{border-left-color:var(--secondary);background:linear-gradient(90deg,rgba(167,139,250,.09),transparent)}
+.callout .callout-title{
+  font-weight:700;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;
+  color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:8px;
+}
+.callout.tip .callout-title{color:var(--success)}
+.callout.warn .callout-title{color:var(--warning)}
+.callout.key .callout-title{color:var(--secondary)}
+.callout p:last-child{margin-bottom:0}
+
+/* TARJETAS */
+.grid{display:grid;gap:18px;margin:24px 0}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;
+  transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  opacity:0;transition:opacity .25s;
+}
+.card:hover{transform:translateY(-5px);border-color:var(--primary);box-shadow:var(--shadow)}
+.card:hover::before{opacity:1}
+.card .emoji{font-size:1.9rem;margin-bottom:10px;display:block}
+.card h4{margin:0 0 8px;font-size:1rem;color:var(--text)}
+.card p{font-size:.88rem;color:var(--text-muted);margin-bottom:0}
+
+/* TABLA */
+.table-wrap{overflow-x:auto;margin:22px 0;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.87rem;min-width:560px}
+thead{background:var(--surface-2)}
+th{
+  padding:14px 16px;text-align:left;font-weight:700;font-size:.76rem;
+  text-transform:uppercase;letter-spacing:.8px;color:var(--primary);
+  border-bottom:2px solid var(--border);
+}
+td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(56,189,248,.05)}
+td strong{color:var(--text)}
+
+/* PIRÁMIDE DIKW */
+.pyramid{display:flex;flex-direction:column;gap:8px;align-items:center;margin:30px 0}
+.pyr-row{
+  width:100%;border-radius:10px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:transform .25s, box-shadow .25s;border:1px solid transparent;
+}
+.pyr-row:hover{transform:scale(1.02);box-shadow:var(--shadow)}
+.pyr-row .pyr-label{font-weight:800;font-size:.95rem;letter-spacing:.5px}
+.pyr-row .pyr-desc{font-size:.83rem;color:var(--text-muted)}
+.pyr-row .pyr-ico{font-size:1.4rem}
+.pyr-1{width:48%;background:linear-gradient(90deg,rgba(244,114,182,.22),rgba(244,114,182,.1));border-color:rgba(244,114,182,.4)}
+.pyr-2{width:66%;background:linear-gradient(90deg,rgba(167,139,250,.22),rgba(167,139,250,.1));border-color:rgba(167,139,250,.4)}
+.pyr-3{width:84%;background:linear-gradient(90deg,rgba(56,189,248,.22),rgba(56,189,248,.1));border-color:rgba(56,189,248,.4)}
+.pyr-4{width:100%;background:linear-gradient(90deg,rgba(52,211,153,.22),rgba(52,211,153,.1));border-color:rgba(52,211,153,.4)}
+
+/* TABS */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 0;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab-btn{
+  padding:11px 20px;border-radius:12px 12px 0 0;font-size:.86rem;font-weight:600;
+  color:var(--text-muted);border-bottom:3px solid transparent;transition:all .2s;
+}
+.tab-btn:hover{color:var(--text);background:var(--surface)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--surface)}
+.tab-panel{display:none;padding:24px 0;animation:fade .35s ease}
+.tab-panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* FLIP CARDS */
+.flip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0}
+.flip{perspective:1000px;height:180px;cursor:pointer}
+.flip-inner{
+  position:relative;width:100%;height:100%;transition:transform .6s;
+  transform-style:preserve-3d;
+}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{
+  position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);
+  padding:20px;display:flex;flex-direction:column;justify-content:center;
+  border:1px solid var(--border);background:var(--surface);
+}
+.flip-front{background:linear-gradient(135deg,var(--surface),var(--surface-2))}
+.flip-front .term{font-weight:800;font-size:1.05rem;color:var(--primary);margin-bottom:6px}
+.flip-front .hint{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.flip-back{transform:rotateY(180deg);background:linear-gradient(135deg,rgba(56,189,248,.1),rgba(167,139,250,.1));border-color:var(--primary)}
+.flip-back p{font-size:.83rem;color:var(--text);margin:0}
+
+/* CICLO DE PROCESAMIENTO */
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0;justify-content:center}
+.flow-step{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:14px 18px;font-size:.83rem;font-weight:600;text-align:center;
+  min-width:130px;transition:all .25s;position:relative;
+}
+.flow-step:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:var(--shadow)}
+.flow-step .n{
+  display:block;font-size:.68rem;color:var(--primary);font-weight:800;
+  letter-spacing:1px;margin-bottom:4px;
+}
+.flow-arrow{color:var(--primary);font-size:1.2rem;font-weight:700}
+
+/* ACTIVIDADES */
+.activity{
+  background:linear-gradient(160deg,var(--surface),var(--bg-soft));
+  border:1px solid var(--border);border-radius:18px;
+  padding:28px;margin:30px 0;position:relative;overflow:hidden;
+}
+.activity::before{
+  content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;
+  border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.18),transparent 70%);
+}
+.activity-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;position:relative}
+.activity-head .badge{
+  background:var(--primary);color:#04121f;font-size:.66rem;font-weight:800;
+  padding:4px 10px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;
+}
+.activity-head h4{font-size:1.1rem;margin:0}
+.activity > p.desc{font-size:.88rem;color:var(--text-muted);margin-bottom:20px;position:relative}
+
+/* BOTONES */
+.btn{
+  padding:11px 22px;border-radius:11px;font-size:.86rem;font-weight:700;
+  transition:all .22s;border:1px solid transparent;display:inline-flex;
+  align-items:center;gap:8px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#04121f}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(56,189,248,.4)}
+.btn-ghost{background:var(--surface-2);border-color:var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;align-items:center}
+
+/* CHIPS / ORDENAR */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.chip{
+  background:var(--surface-2);border:1px solid var(--border);
+  padding:10px 16px;border-radius:99px;font-size:.83rem;font-weight:600;
+  transition:all .2s;color:var(--text);
+}
+.chip:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-2px)}
+.chip.used{opacity:.3;pointer-events:none;text-decoration:line-through}
+.sequence{
+  min-height:58px;border:2px dashed var(--border);border-radius:12px;
+  padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:rgba(0,0,0,.12);margin-bottom:16px;
+}
+body.light .sequence{background:rgba(0,0,0,.03)}
+.sequence .seq-item{
+  background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(167,139,250,.18));
+  border:1px solid var(--primary);padding:8px 14px;border-radius:9px;
+  font-size:.8rem;font-weight:600;animation:pop .25s ease;
+}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.sequence .placeholder{color:var(--text-muted);font-size:.82rem;font-style:italic}
+
+/* CLASIFICADOR */
+.classify-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:16px;margin-bottom:12px;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;gap:12px;
+}
+.classify-item .txt{font-size:.88rem;font-weight:600;flex:1;min-width:200px}
+.classify-opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt-btn{
+  padding:7px 14px;border-radius:9px;font-size:.76rem;font-weight:700;
+  background:var(--surface-2);border:1px solid var(--border);transition:all .2s;
+}
+.opt-btn:hover{border-color:var(--primary);color:var(--primary)}
+.opt-btn.correct{background:rgba(52,211,153,.2);border-color:var(--success);color:var(--success)}
+.opt-btn.wrong{background:rgba(248,113,113,.2);border-color:var(--danger);color:var(--danger)}
+.feedback{font-size:.79rem;width:100%;margin-top:6px;color:var(--text-muted)}
+.feedback.ok{color:var(--success)}
+.feedback.no{color:var(--danger)}
+
+/* QUIZ */
+.quiz-q{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:22px;margin-bottom:18px;
+}
+.quiz-q .q-text{font-weight:700;font-size:.95rem;margin-bottom:16px;display:flex;gap:10px}
+.quiz-q .q-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:8px;
+  background:var(--primary);color:#04121f;font-size:.78rem;
+  display:grid;place-items:center;font-weight:800;
+}
+.quiz-opt{
+  display:block;width:100%;text-align:left;padding:13px 16px;border-radius:11px;
+  background:var(--surface-2);border:1px solid var(--border);
+  margin-bottom:9px;font-size:.87rem;transition:all .2s;color:var(--text);
+}
+.quiz-opt:hover:not(.locked){border-color:var(--primary);transform:translateX(4px)}
+.quiz-opt.correct{background:rgba(52,211,153,.16);border-color:var(--success);color:var(--success);font-weight:700}
+.quiz-opt.wrong{background:rgba(248,113,113,.16);border-color:var(--danger);color:var(--danger);font-weight:700}
+.quiz-opt.locked{cursor:default}
+.quiz-explain{
+  font-size:.82rem;color:var(--text-muted);margin-top:12px;
+  padding:12px 14px;border-left:3px solid var(--primary);
+  background:rgba(56,189,248,.07);border-radius:0 9px 9px 0;
+  display:none;
+}
+.quiz-explain.show{display:block;animation:fade .3s}
+
+.score-box{
+  text-align:center;padding:30px;border-radius:16px;
+  background:linear-gradient(135deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);margin-top:22px;display:none;
+}
+.score-box.show{display:block;animation:fade .4s}
+.score-box .big{font-size:2.8rem;font-weight:800;color:var(--primary);line-height:1}
+.score-box p{color:var(--text-muted);margin-top:8px}
+
+/* GLOSARIO */
+.search-box{
+  width:100%;padding:14px 18px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-size:.9rem;margin-bottom:18px;font-family:inherit;
+}
+.search-box:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+.search-box::placeholder{color:var(--text-muted)}
+.gloss-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;
+}
+.gloss-item:hover{border-color:var(--primary)}
+.gloss-head{
+  padding:15px 20px;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;gap:12px;
+}
+.gloss-head .term{font-weight:700;font-size:.92rem;color:var(--primary)}
+.gloss-head .cat{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--text-muted);background:var(--surface-2);
+  padding:3px 9px;border-radius:99px;border:1px solid var(--border);flex-shrink:0;
+}
+.gloss-head .arrow{transition:transform .3s;color:var(--text-muted);font-size:.8rem}
+.gloss-item.open .arrow{transform:rotate(180deg)}
+.gloss-body{
+  max-height:0;overflow:hidden;transition:max-height .4s ease;
+  padding:0 20px;
+}
+.gloss-item.open .gloss-body{max-height:600px;padding-bottom:18px}
+.gloss-body p{font-size:.85rem;color:var(--text-muted);margin-bottom:10px}
+.gloss-body .ex{
+  font-size:.82rem;padding:11px 14px;border-radius:9px;
+  background:rgba(52,211,153,.08);border-left:3px solid var(--success);
+  color:var(--text);
+}
+.gloss-body .ex b{color:var(--success)}
+
+/* TIMELINE */
+.timeline{position:relative;margin:30px 0 30px 12px;padding-left:32px}
+.timeline::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--primary),var(--secondary),var(--accent));
+  border-radius:2px;
+}
+.tl-item{position:relative;margin-bottom:26px}
+.tl-item::before{
+  content:'';position:absolute;left:-38px;top:6px;width:14px;height:14px;
+  border-radius:50%;background:var(--bg);border:3px solid var(--primary);
+  box-shadow:0 0 0 4px rgba(56,189,248,.12);
+}
+.tl-item .year{font-weight:800;color:var(--primary);font-size:.85rem;letter-spacing:.5px}
+.tl-item h4{margin:3px 0 6px;font-size:.98rem}
+.tl-item p{font-size:.86rem;color:var(--text-muted);margin:0}
+
+/* ACORDEÓN */
+.acc-item{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--surface)}
+.acc-head{padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;gap:12px}
+.acc-head:hover{color:var(--primary)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .4s ease;padding:0 20px}
+.acc-item.open .acc-body{max-height:800px;padding-bottom:18px}
+.acc-item.open .arrow{transform:rotate(180deg)}
+.arrow{transition:transform .3s;font-size:.8rem;color:var(--text-muted);flex-shrink:0}
+
+/* BADGES DE SECCIÓN */
+.pill{
+  display:inline-block;padding:4px 12px;border-radius:99px;font-size:.7rem;
+  font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  background:rgba(167,139,250,.15);color:var(--secondary);
+  border:1px solid rgba(167,139,250,.3);margin-bottom:12px;
+}
+.pill.blue{background:rgba(56,189,248,.15);color:var(--primary);border-color:rgba(56,189,248,.3)}
+.pill.green{background:rgba(52,211,153,.15);color:var(--success);border-color:rgba(52,211,153,.3)}
+.pill.pink{background:rgba(244,114,182,.15);color:var(--accent);border-color:rgba(244,114,182,.3)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translate(-50%,120px);
+  background:var(--surface);border:1px solid var(--primary);color:var(--text);
+  padding:14px 26px;border-radius:12px;font-size:.87rem;font-weight:600;
+  box-shadow:var(--shadow);z-index:999;transition:transform .35s ease;
+  display:flex;align-items:center;gap:10px;max-width:90vw;
+}
+.toast.show{transform:translate(-50%,0)}
+.toast.ok{border-color:var(--success)}
+.toast.err{border-color:var(--danger)}
+
+/* FOOTER */
+footer{
+  padding:34px 26px;text-align:center;border-top:1px solid var(--border);
+  color:var(--text-muted);font-size:.82rem;background:var(--bg-soft);
+}
+footer strong{color:var(--primary)}
+
+/* OVERLAY MÓVIL */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:55;backdrop-filter:blur(2px);
+}
+.overlay.show{display:block}
+
+/* SCROLL TOP */
+.to-top{
+  position:fixed;bottom:26px;right:26px;width:46px;height:46px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#04121f;display:grid;place-items:center;font-size:1.1rem;
+  box-shadow:0 8px 22px rgba(56,189,248,.4);opacity:0;pointer-events:none;
+  transition:all .3s;z-index:70;font-weight:800;
+}
+.to-top.show{opacity:1;pointer-events:auto}
+.to-top:hover{transform:translateY(-4px)}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);box-shadow:var(--shadow)}
+  .sidebar.open{transform:translateX(0)}
+  .menu-btn{display:grid}
+  main{padding:0 18px 80px}
+  .read-bar{top:62px}
+}
+@media(max-width:640px){
+  body{font-size:15px}
+  section{padding:40px 0}
+  .hero{padding:44px 0 34px}
+  .topbar{padding:10px 16px}
+  .topbar .crumb{display:none}
+  .sec-head{gap:12px}
+  .sec-num{width:38px;height:38px;font-size:.95rem}
+  .activity{padding:20px}
+  .pyr-1,.pyr-2,.pyr-3,.pyr-4{width:100%}
+  .pyr-row{flex-direction:column;text-align:center;gap:4px}
+  .flow-arrow{display:none}
+  .flow-step{width:100%}
+  .to-top{right:16px;bottom:16px}
+  .stat{padding:12px 18px;min-width:105px}
+  .stat b{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">⚙️</div>
+      <div>
+        <h1>Procesamiento de Datos</h1>
+        <span>Ing. de Sistemas</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Fundamentos</div>
+      <a href="#inicio" class="nav-link active"><span class="ico">🏠</span> Inicio</a>
+      <a href="#conceptos" class="nav-link"><span class="ico">💡</span> Conceptos base</a>
+      <a href="#estructuras" class="nav-link"><span class="ico">🧱</span> Estructuras de datos</a>
+      <a href="#tipos" class="nav-link"><span class="ico">🗂️</span> Tipos de datos</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Procesamiento</div>
+      <a href="#ciclo" class="nav-link"><span class="ico">🔄</span> Ciclo de procesamiento</a>
+      <a href="#paradigmas" class="nav-link"><span class="ico">⚡</span> Batch vs Streaming</a>
+      <a href="#almacenamiento" class="nav-link"><span class="ico">🗄️</span> Almacenamiento</a>
+      <a href="#bigdata" class="nav-link"><span class="ico">📈</span> Big Data</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Contexto</div>
+      <a href="#historia" class="nav-link"><span class="ico">📜</span> Evolución histórica</a>
+      <a href="#futuro" class="nav-link"><span class="ico">🚀</span> Perspectivas de futuro</a>
+      <a href="#importancia" class="nav-link"><span class="ico">🎯</span> Importancia profesional</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Recursos</div>
+      <a href="#glosario" class="nav-link"><span class="ico">📚</span> Glosario</a>
+      <a href="#actividades" class="nav-link"><span class="ico">🎮</span> Actividades</a>
+    </div>
+
+    <div class="side-progress">
+      <h4>Tu progreso</h4>
+      <div class="progress-track"><div class="progress-fill" id="sideProgressFill"></div></div>
+      <p id="sideProgressText">0 de 4 actividades completadas</p>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ================= CONTENIDO ================= -->
+  <div class="content">
+
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="tool-btn menu-btn" id="menuBtn" aria-label="Menú">☰</button>
+        <div class="crumb">Módulo 1 · <strong id="crumbCurrent">Inicio</strong></div>
+      </div>
+      <div class="topbar-tools">
+        <button class="tool-btn" id="themeBtn" title="Cambiar tema">🌙</button>
+      </div>
+    </header>
+    <div class="read-bar"><div class="read-bar-fill" id="readBarFill"></div></div>
+
+    <main>
+
+      <!-- ============ HERO ============ -->
+      <section class="hero" id="inicio">
+        <span class="tag">Ingeniería de Sistemas · Módulo 1</span>
+        <h1>Fundamentos del <span class="grad">Procesamiento de Datos</span></h1>
+        <p>
+          Un recorrido progresivo desde el dato crudo hasta los ecosistemas distribuidos de
+          inteligencia artificial. Aprende, practica y consolida los conceptos esenciales
+          que todo ingeniero de sistemas debe dominar.
+        </p>
+        <div class="btn-row" style="justify-content:center">
+          <a href="#conceptos" class="btn btn-primary">Comenzar el recorrido →</a>
+          <a href="#actividades" class="btn btn-ghost">Ir a las actividades</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><b>12</b><span>Secciones</span></div>
+          <div class="stat"><b>4</b><span>Actividades</span></div>
+          <div class="stat"><b>50+</b><span>Términos</span></div>
+          <div class="stat"><b>10</b><span>Preguntas quiz</span></div>
+        </div>
+      </section>
+
+      <!-- ============ CONCEPTOS BASE ============ -->
+      <section id="conceptos">
+        <div class="sec-head">
+          <div class="sec-num">01</div>
+          <div>
+            <h2>Conceptos base: dato, información y conocimiento</h2>
+            <p>La materia prima del procesamiento y su transformación en valor.</p>
+          </div>
+        </div>
+
+        <p>
+          Todo sistema de información se construye sobre una jerarquía conceptual precisa. En
+          ingeniería de sistemas, estos términos <strong>no son sinónimos</strong>: cada uno
+          representa un nivel distinto de elaboración y valor.
+        </p>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <span class="emoji">🔹</span>
+            <h4>Dato</h4>
+            <p>Unidad mínima semántica. Representación cruda de un hecho, sin contexto ni interpretación. Por sí solo no permite actuar.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">🔷</span>
+            <h4>Información</h4>
+            <p>Datos procesados, contextualizados y organizados que adquieren significado, relevancia y propósito.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">💎</span>
+            <h4>Conocimiento</h4>
+            <p>Información combinada con experiencia, juicio y contexto. Permite comprender patrones, predecir y decidir.</p>
+          </div>
+        </div>
+
+        <div class="callout key">
+          <div class="callout-title">💡 Idea clave</div>
+          <p>
+            El procesamiento de datos es, esencialmente, el <strong>puente</strong> que convierte
+            datos crudos en información accionable. Sin procesamiento, los datos son solo ruido
+            almacenado.
+          </p>
+        </div>
+
+        <h3>La pirámide DIKW</h3>
+        <p>
+          El modelo <strong>DIKW</strong> (<em>Data, Information, Knowledge, Wisdom</em>) describe
+          la progresión jerárquica del conocimiento. Haz clic en cada nivel para explorarlo.
+        </p>
+
+        <div class="pyramid">
+          <div class="pyr-row pyr-1" data-info="El nivel más alto. Implica juicio, valores y experiencia aplicada. Responde al '¿por qué?' y permite decidir considerando consecuencias éticas y estratégicas.">
+            <span class="pyr-ico">🧠</span>
+            <div><div class="pyr-label">SABIDURÍA</div><div class="pyr-desc">Juicio aplicado · ¿Por qué?</div></div>
+          </div>
+          <div class="pyr-row pyr-2" data-info="Información interpretada con experiencia y análisis. Permite comprender relaciones, patrones y predecir comportamientos. Responde al '¿cómo?'.">
+            <span class="pyr-ico">📘</span>
+            <div><div class="pyr-label">CONOCIMIENTO</div><div class="pyr-desc">Experiencia + análisis · ¿Cómo?</div></div>
+          </div>
+          <div class="pyr-row pyr-3" data-info="Datos con contexto, categorizados y calculados. Adquieren significado y responden a '¿quién, qué, dónde, cuándo?'.">
+            <span class="pyr-ico">📄</span>
+            <div><div class="pyr-label">INFORMACIÓN</div><div class="pyr-desc">Datos con contexto · ¿Quién/qué/cuándo?</div></div>
+          </div>
+          <div class="pyr-row pyr-4" data-info="Hechos crudos, símbolos sin interpretación. Constituyen la base de toda la pirámide y la materia prima del procesamiento.">
+            <span class="pyr-ico">🔢</span>
+            <div><div class="pyr-label">DATOS</div><div class="pyr-desc">Hechos crudos · Base de todo</div></div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">🏥 Ejemplo integrador: hospital</div>
+          <p>
+            <strong>Dato:</strong> "120/80" · <strong>Información:</strong> "presión arterial del paciente X" ·
+            <strong>Conocimiento:</strong> "el paciente presenta hipertensión leve" ·
+            <strong>Sabiduría:</strong> "se ajusta la medicación considerando su historial renal".
+          </p>
+        </div>
+
+        <!-- Actividad 1 -->
+        <div class="activity" id="act-dikw">
+          <div class="activity-head">
+            <span class="badge">Actividad 1</span>
+            <h4>Ordena la jerarquía DIKW</h4>
+          </div>
+          <p class="desc">
+            Haz clic en los elementos en orden ascendente: desde el nivel más básico (base de la pirámide)
+            hasta el más elaborado (cima). Luego verifica tu respuesta.
+          </p>
+
+          <div class="sequence" id="seq-dikw">
+            <span class="placeholder">Tu secuencia aparecerá aquí…</span>
+          </div>
+
+          <div class="chips" id="chips-dikw"></div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="checkSequence('dikw')">Verificar orden</button>
+            <button class="btn btn-ghost" onclick="resetSequence('dikw')">Reiniciar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ESTRUCTURAS DE DATOS ============ -->
+      <section id="estructuras">
+        <div class="sec-head">
+          <div class="sec-num">02</div>
+          <div>
+            <h2>Estructuras de datos</h2>
+            <p>Cómo organizamos los datos para procesarlos eficientemente.</p>
+          </div>
+        </div>
+
+        <p>
+          Una <strong>estructura de datos</strong> es un formato específico para organizar, almacenar,
+          procesar y recuperar datos de manera eficiente. Define las relaciones entre elementos y las
+          operaciones permitidas sobre ellos. Su elección impacta directamente en el rendimiento algorítmico.
+        </p>
+
+        <div class="tabs" data-tabs="estructuras">
+          <button class="tab-btn active" data-tab="lineales">Lineales</button>
+          <button class="tab-btn" data-tab="nolineales">No lineales</button>
+          <button class="tab-btn" data-tab="clasificacion">Clasificación</button>
+        </div>
+
+        <div class="tab-panel active" data-panel="lineales">
+          <div class="grid grid-2">
+            <div class="card">
+              <span class="emoji">📊</span>
+              <h4>Array (Arreglo)</h4>
+              <p>Elementos del mismo tipo en memoria contigua. Acceso directo O(1) por índice; tamaño fijo.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 Una imagen digital es un array 2D de píxeles RGB.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">🔗</span>
+              <h4>Lista enlazada</h4>
+              <p>Cada nodo guarda un valor y un puntero al siguiente. Inserción/eliminación eficiente; acceso secuencial O(n).</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 El historial de un navegador es una lista doblemente enlazada.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">📚</span>
+              <h4>Pila (Stack)</h4>
+              <p>Estructura LIFO: el último en entrar es el primero en salir. Usada en recursión y deshacer.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 Ctrl+Z en un editor usa una pila de acciones.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">🚶</span>
+              <h4>Cola (Queue)</h4>
+              <p>Estructura FIFO: el primero en entrar es el primero en salir. Base de los sistemas de mensajería.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 La cola de impresión de una oficina es una cola.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="nolineales">
+          <div class="grid grid-2">
+            <div class="card">
+              <span class="emoji">🌳</span>
+              <h4>Árbol (Tree)</h4>
+              <p>Jerarquía de nodos sin ciclos. Los BST permiten búsquedas O(log n); los árboles B+ indexan bases de datos.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 El sistema de archivos de Linux es un árbol con raíz en /.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">🕸️</span>
+              <h4>Grafo (Graph)</h4>
+              <p>Vértices y aristas que representan relaciones arbitrarias. Dirigidos o no, ponderados o no.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 Un GPS calcula la ruta más corta sobre un grafo de carreteras.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">🗂️</span>
+              <h4>Tabla Hash</h4>
+              <p>Mapea claves a valores mediante función hash. Búsqueda promedio O(1). Base de las bases clave-valor.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 Redis almacena pares clave-valor en memoria con latencias de µs.</p>
+            </div>
+            <div class="card">
+              <span class="emoji">⛰️</span>
+              <h4>Heap (Montículo)</h4>
+              <p>Árbol binario que mantiene el mínimo o máximo en la raíz. Base de las colas de prioridad.</p>
+              <p style="margin-top:10px;font-size:.79rem;color:var(--success)">💡 Los schedulers de sistemas operativos usan heaps.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="clasificacion">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Criterio</th><th>Tipo</th><th>Característica</th><th>Ejemplos</th></tr>
+              </thead>
+              <tbody>
+                <tr><td rowspan="2"><strong>Disposición</strong></td><td>Lineales</td><td>Elementos secuenciales</td><td>Array, lista, pila, cola</td></tr>
+                <tr><td>No lineales</td><td>Relaciones jerárquicas o arbitrarias</td><td>Árbol, grafo, heap</td></tr>
+                <tr><td rowspan="2"><strong>Tamaño</strong></td><td>Estáticas</td><td>Tamaño fijo en compilación</td><td>Array, registro</td></tr>
+                <tr><td>Dinámicas</td><td>Tamaño variable en ejecución</td><td>Lista, diccionario</td></tr>
+                <tr><td rowspan="2"><strong>Almacenamiento</strong></td><td>Volátiles</td><td>En memoria RAM</td><td>Pila de ejecución</td></tr>
+                <tr><td>Permanentes</td><td>En disco o almacenamiento persistente</td><td>Archivos, BD</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TIPOS DE DATOS ============ -->
+      <section id="tipos">
+        <div class="sec-head">
+          <div class="sec-num">03</div>
+          <div>
+            <h2>Tipos de datos según su estructura</h2>
+            <p>Estructurados, semiestructurados y no estructurados.</p>
+          </div>
+        </div>
+
+        <p>
+          No todos los datos se organizan igual. Esta clasificación determina las herramientas,
+          técnicas de procesamiento y arquitecturas de almacenamiento que deberás elegir como ingeniero.
+        </p>
+
+        <div class="flip-grid">
+          <div class="flip">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <div class="term">Estructurados</div>
+                <div class="hint">Clic para ver</div>
+              </div>
+              <div class="flip-face flip-back">
+                <p>Esquema fijo y tabular. Almacenados en BD relacionales. Fáciles de consultar y validar. <br><br><b style="color:var(--success)">Ej:</b> tabla de clientes en MySQL.</p>
+              </div>
+            </div>
+          </div>
+          <div class="flip">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <div class="term">Semiestructurados</div>
+                <div class="hint">Clic para ver</div>
+              </div>
+              <div class="flip-face flip-back">
+                <p>Cierta organización con variabilidad entre instancias. Formatos JSON, XML, YAML. <br><br><b style="color:var(--success)">Ej:</b> respuesta JSON de una API REST.</p>
+              </div>
+            </div>
+          </div>
+          <div class="flip">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <div class="term">No estructurados</div>
+                <div class="hint">Clic para ver</div>
+              </div>
+              <div class="flip-face flip-back">
+                <p>Sin esquema predefinido. Requieren NLP, visión por computadora o deep learning. <br><br><b style="color:var(--success)">Ej:</b> videos, audio, correos, imágenes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Dimensión</th><th>Estructurados</th><th>Semiestructurados</th><th>No estructurados</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Esquema</strong></td><td>Fijo y predefinido</td><td>Flexible, con estructura parcial</td><td>Sin esquema</td></tr>
+              <tr><td><strong>Formato</strong></td><td>Tablas (filas/columnas)</td><td>JSON, XML, YAML</td><td>Texto libre, media, binarios</td></tr>
+              <tr><td><strong>Almacenamiento</strong></td><td>BD relacional</td><td>BD NoSQL, data lakes</td><td>Data lakes, object storage</td></tr>
+              <tr><td><strong>Procesamiento</strong></td><td>Alto y sencillo</td><td>Medio</td><td>Complejo (técnicas especializadas)</td></tr>
+              <tr><td><strong>Ejemplo real</strong></td><td>CRM de clientes</td><td>Pedido en JSON</td><td>Video de vigilancia</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <div class="callout-title">⚠️ Dato relevante</div>
+          <p>
+            Se estima que <strong>más del 80% de los datos generados</strong> actualmente son no
+            estructurados. Por eso la IA generativa y las arquitecturas modernas se centran en
+            extraer, calificar y gobernar este tipo de datos.
+          </p>
+        </div>
+
+        <!-- Actividad 2 -->
+        <div class="activity" id="act-clasificar">
+          <div class="activity-head">
+            <span class="badge">Actividad 2</span>
+            <h4>Clasifica el tipo de dato</h4>
+          </div>
+          <p class="desc">
+            Para cada ejemplo, selecciona si corresponde a un dato estructurado, semiestructurado o
+            no estructurado. Recibirás retroalimentación inmediata.
+          </p>
+          <div id="classifyContainer"></div>
+        </div>
+      </section>
+
+      <!-- ============ CICLO ============ -->
+      <section id="ciclo">
+        <div class="sec-head">
+          <div class="sec-num">04</div>
+          <div>
+            <h2>El ciclo de procesamiento de datos</h2>
+            <p>De la recolección a la retroalimentación: un pipeline iterativo.</p>
+          </div>
+        </div>
+
+        <p>
+          El procesamiento de datos es un <strong>ciclo de vida iterativo</strong>, no un evento aislado.
+          Cada fase alimenta a la siguiente y los resultados retroalimentan el sistema.
+        </p>
+
+        <div class="flow">
+          <div class="flow-step"><span class="n">FASE 1</span>📥 Recolección</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step"><span class="n">FASE 2</span>🧹 Limpieza</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step"><span class="n">FASE 3</span>💾 Entrada</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step"><span class="n">FASE 4</span>⚙️ Transformación</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step"><span class="n">FASE 5</span>📊 Salida</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step"><span class="n">FASE 6</span>🔄 Retroalimentación</div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h4>📥 Recolección</h4>
+            <p>Obtención de datos desde sensores, APIs, bases de datos o entrada manual. La calidad de la fuente determina la calidad del resultado.</p>
+          </div>
+          <div class="card">
+            <h4>🧹 Limpieza y preparación</h4>
+            <p>Fase crítica: se depuran errores, se eliminan duplicados, se imputan valores nulos y se normalizan formatos.</p>
+          </div>
+          <div class="card">
+            <h4>💾 Entrada / Almacenamiento</h4>
+            <p>Los datos se almacenan en estructuras adecuadas: bases relacionales, data lakes o almacenes de objetos.</p>
+          </div>
+          <div class="card">
+            <h4>⚙️ Transformación</h4>
+            <p>Se aplican reglas de negocio, agregaciones, cálculos o modelos estadísticos y de machine learning.</p>
+          </div>
+          <div class="card">
+            <h4>📊 Salida y presentación</h4>
+            <p>Los resultados se visualizan en dashboards, reportes o se entregan a sistemas de decisión.</p>
+          </div>
+          <div class="card">
+            <h4>🔄 Retroalimentación</h4>
+            <p>Los resultados alimentan la mejora continua: ajuste de reglas, reentrenamiento de modelos, optimización.</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">✅ Regla de oro</div>
+          <p>
+            <strong>Garbage In, Garbage Out (GIGO).</strong> Si los datos de entrada son incorrectos,
+            inconsistentes o incompletos, ninguna técnica avanzada producirá resultados confiables.
+          </p>
+        </div>
+
+        <!-- Actividad 3 -->
+        <div class="activity" id="act-ciclo">
+          <div class="activity-head">
+            <span class="badge">Actividad 3</span>
+            <h4>Ordena el ciclo de procesamiento</h4>
+          </div>
+          <p class="desc">
+            Haz clic en las fases en el orden correcto, desde la recolección hasta la retroalimentación.
+          </p>
+          <div class="sequence" id="seq-ciclo">
+            <span class="placeholder">Tu secuencia aparecerá aquí…</span>
+          </div>
+          <div class="chips" id="chips-ciclo"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="checkSequence('ciclo')">Verificar orden</button>
+            <button class="btn btn-ghost" onclick="resetSequence('ciclo')">Reiniciar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PARADIGMAS ============ -->
+      <section id="paradigmas">
+        <div class="sec-head">
+          <div class="sec-num">05</div>
+          <div>
+            <h2>Batch vs. Streaming</h2>
+            <p>Las dos semánticas fundamentales del procesamiento moderno.</p>
+          </div>
+        </div>
+
+        <p>
+          Una de las decisiones arquitectónicas más importantes que tomarás como ingeniero es elegir
+          entre procesar por <strong>lotes</strong> o en <strong>streaming</strong>. No hay una opción
+          "mejor": depende de los requisitos de latencia, volumen y caso de uso.
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card" style="border-color:rgba(56,189,248,.4)">
+            <span class="emoji">📦</span>
+            <h4>Procesamiento por Lotes (Batch)</h4>
+            <p>
+              Opera sobre conjuntos de datos <strong>estáticos y acotados</strong>, en intervalos
+              programados. Prioriza el <em>throughput</em> sobre la latencia.
+            </p>
+            <ul style="margin-top:12px;font-size:.85rem;color:var(--text-muted)">
+              <li>Latencia: minutos a horas</li>
+              <li>Throughput: muy alto</li>
+              <li>Complejidad operativa: menor</li>
+              <li>Casos: nóminas, reportes, backups</li>
+            </ul>
+          </div>
+          <div class="card" style="border-color:rgba(244,114,182,.4)">
+            <span class="emoji">⚡</span>
+            <h4>Procesamiento en Streaming</h4>
+            <p>
+              Procesa flujos <strong>continuos e ilimitados</strong>, evento por evento. Prioriza la
+              <em>baja latencia</em> manteniendo tolerancia a fallos.
+            </p>
+            <ul style="margin-top:12px;font-size:.85rem;color:var(--text-muted)">
+              <li>Latencia: milisegundos a segundos</li>
+              <li>Throughput: alto, por ventanas</li>
+              <li>Complejidad operativa: mayor</li>
+              <li>Casos: fraude, IoT, monitoreo</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>ETL vs. ELT</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Aspecto</th><th>ETL</th><th>ELT</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Orden</strong></td><td>Extraer → Transformar → Cargar</td><td>Extraer → Cargar → Transformar</td></tr>
+              <tr><td><strong>Transformación</strong></td><td>Antes de cargar (servidor intermedio)</td><td>Después de cargar (en el destino)</td></tr>
+              <tr><td><strong>Destino típico</strong></td><td>Data warehouse</td><td>Data lake / cloud warehouse</td></tr>
+              <tr><td><strong>Herramientas</strong></td><td>Informatica, SSIS, Talend</td><td>Fivetran, dbt, Airbyte</td></tr>
+              <tr><td><strong>Ventaja</strong></td><td>Datos limpios al llegar</td><td>Aprovecha la potencia de la nube</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout key">
+          <div class="callout-title">🧩 Arquitectura Lambda</div>
+          <p>
+            Combina una capa <strong>batch</strong> (precisa, histórica) con una capa
+            <strong>streaming</strong> (rápida, en tiempo real). Permite obtener resultados
+            oportunos sin sacrificar exactitud.
+          </p>
+        </div>
+
+        <!-- Actividad 4 -->
+        <div class="activity" id="act-paradigma">
+          <div class="activity-head">
+            <span class="badge">Actividad 4</span>
+            <h4>¿Batch o Streaming?</h4>
+          </div>
+          <p class="desc">
+            Lee cada escenario y decide qué paradigma de procesamiento elegirías.
+          </p>
+          <div id="paradigmContainer"></div>
+        </div>
+      </section>
+
+      <!-- ============ ALMACENAMIENTO ============ -->
+      <section id="almacenamiento">
+        <div class="sec-head">
+          <div class="sec-num">06</div>
+          <div>
+            <h2>Arquitecturas de almacenamiento</h2>
+            <p>Data Warehouse, Data Lake y Lakehouse.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <span class="emoji">🏛️</span>
+            <h4>Data Warehouse</h4>
+            <p>
+              Repositorio centralizado, estructurado y optimizado para consultas analíticas.
+              Esquemas estrella o copo de nieve. Carga mediante ETL.
+            </p>
+            <p style="margin-top:10px;font-size:.79rem;color:var(--success)">Ej: Snowflake, BigQuery, Redshift.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">🌊</span>
+            <h4>Data Lake</h4>
+            <p>
+              Almacena datos en formato nativo (estructurados, semiestructurados y no estructurados).
+              Esquema en lectura (<em>schema-on-read</em>).
+            </p>
+            <p style="margin-top:10px;font-size:.79rem;color:var(--success)">Ej: S3 + Athena, Azure Data Lake.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">🏠</span>
+            <h4>Data Lakehouse</h4>
+            <p>
+              Híbrido: flexibilidad del lake + garantías ACID y rendimiento del warehouse.
+              Con versionado y esquemas.
+            </p>
+            <p style="margin-top:10px;font-size:.79rem;color:var(--success)">Ej: Delta Lake, Iceberg, Hudi.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Criterio</th><th>Data Warehouse</th><th>Data Lake</th><th>Lakehouse</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Tipos de datos</strong></td><td>Estructurados</td><td>Todos</td><td>Todos</td></tr>
+              <tr><td><strong>Esquema</strong></td><td>En escritura</td><td>En lectura</td><td>En escritura, flexible</td></tr>
+              <tr><td><strong>Transacciones</strong></td><td>ACID completo</td><td>Limitado</td><td>ACID</td></tr>
+              <tr><td><strong>Costo</strong></td><td>Alto</td><td>Bajo</td><td>Medio</td></tr>
+              <tr><td><strong>Usuarios</strong></td><td>Analistas BI</td><td>Data scientists</td><td>Ambos</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ BIG DATA ============ -->
+      <section id="bigdata">
+        <div class="sec-head">
+          <div class="sec-num">07</div>
+          <div>
+            <h2>Big Data y procesamiento distribuido</h2>
+            <p>Cuando los datos superan la capacidad de las herramientas tradicionales.</p>
+          </div>
+        </div>
+
+        <p>
+          El <strong>Big Data</strong> se define por los <strong>3V originales</strong> de Doug Laney
+          (2001), a los que se han añadido dos dimensiones más.
+        </p>
+
+        <div class="grid grid-3">
+          <div class="card"><span class="emoji">📦</span><h4>Volumen</h4><p>Terabytes a petabytes de datos que no caben ni se procesan en un solo equipo.</p></div>
+          <div class="card"><span class="emoji">🎨</span><h4>Variedad</h4><p>Datos estructurados, semiestructurados y no estructurados en un mismo ecosistema.</p></div>
+          <div class="card"><span class="emoji">⚡</span><h4>Velocidad</h4><p>Generación y necesidad de procesamiento en tiempo real o casi real.</p></div>
+          <div class="card"><span class="emoji">✅</span><h4>Veracidad</h4><p>Calidad e incertidumbre de los datos: no todo lo recolectado es confiable.</p></div>
+          <div class="card"><span class="emoji">💎</span><h4>Valor</h4><p>Capacidad de convertir el volumen en conocimiento útil para el negocio.</p></div>
+          <div class="card" style="border-color:var(--primary)"><span class="emoji">🔑</span><h4>Clave</h4><p>Sin valor, los otros cuatro "V" son solo costo tecnológico.</p></div>
+        </div>
+
+        <h3>Tecnologías esenciales</h3>
+        <div class="acc-item">
+          <div class="acc-head"><span>🐘 Apache Hadoop</span><span class="arrow">▼</span></div>
+          <div class="acc-body">
+            <p>Framework de código abierto para procesamiento distribuido sobre clústeres de hardware commodity. Sus componentes son HDFS (sistema de archivos distribuido) y MapReduce (modelo de programación). Sentó las bases del Big Data, aunque hoy ha sido superado por tecnologías en memoria.</p>
+            <p style="font-size:.82rem;color:var(--success)">💡 Yahoo! lo usó durante años para procesar petabytes de datos de búsqueda y correo.</p>
+          </div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head"><span>⚙️ MapReduce</span><span class="arrow">▼</span></div>
+          <div class="acc-body">
+            <p>Modelo de programación paralela: la fase <strong>Map</strong> transforma datos en pares clave-valor y la fase <strong>Reduce</strong> los agrega y resume. Es la base conceptual de muchas tecnologías de Big Data.</p>
+            <p style="font-size:.82rem;color:var(--success)">💡 Contar palabras en miles de millones de documentos: Map emite (palabra, 1) y Reduce suma los conteos.</p>
+          </div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head"><span>✨ Apache Spark</span><span class="arrow">▼</span></div>
+          <div class="acc-body">
+            <p>Motor de procesamiento distribuido <strong>en memoria</strong> que soporta batch, streaming, machine learning y SQL. Supera a MapReduce en rendimiento y ofrece una API unificada con DataFrames y Datasets.</p>
+            <p style="font-size:.82rem;color:var(--success)">💡 Uber lo usa para procesar viajes en tiempo real y calcular tarifas dinámicas.</p>
+          </div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head"><span>📨 Apache Kafka</span><span class="arrow">▼</span></div>
+          <div class="acc-body">
+            <p>Plataforma distribuida de <strong>streaming de eventos</strong> con modelo publish-subscribe, persistencia, tolerancia a fallos y escalabilidad horizontal. Es el estándar de facto para ingesta en tiempo real.</p>
+            <p style="font-size:.82rem;color:var(--success)">💡 LinkedIn lo creó para procesar billones de eventos diarios; hoy lo usan Netflix, Uber y miles de empresas.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HISTORIA ============ -->
+      <section id="historia">
+        <div class="sec-head">
+          <div class="sec-num">08</div>
+          <div>
+            <h2>Evolución histórica</h2>
+            <p>De las tarjetas perforadas a los ecosistemas de IA distribuida.</p>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="year">1663</div>
+            <h4>Los orígenes del análisis de datos</h4>
+            <p>John Graunt introduce el análisis estadístico sistemático durante la peste bubónica en Londres.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">1889</div>
+            <h4>La tarjeta perforada</h4>
+            <p>Herman Hollerith patenta el tabulador eléctrico, reduciendo el censo de EE.UU. de 8 años a una fracción del tiempo.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">1936</div>
+            <h4>La máquina universal</h4>
+            <p>Alan Turing formula la teoría de una máquina capaz de resolver cualquier problema con solución algorítmica.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">1950–1969</div>
+            <h4>Era de las cintas magnéticas</h4>
+            <p>Se automatizan tareas como nóminas. El procesamiento es secuencial: leer de una cinta y escribir en otra.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">1970</div>
+            <h4>El modelo relacional</h4>
+            <p>Edgar F. Codd define el modelo relacional. Los discos fijos liberan a los datos de la "tiranía de la secuencialidad".</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">1980–1999</div>
+            <h4>Popularización del análisis</h4>
+            <p>System R y los optimizadores de consultas impulsan la adopción de bases de datos relacionales. Se crean los primeros centros de procesamiento de datos.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">2001</div>
+            <h4>Los 3V del Big Data</h4>
+            <p>Doug Laney acuña el concepto de volumen, variedad y velocidad.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">2006</div>
+            <h4>Apache Hadoop</h4>
+            <p>El procesamiento distribuido se democratiza; cualquier empresa puede procesar grandes volúmenes.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">2010s</div>
+            <h4>Auge del streaming</h4>
+            <p>Kafka, Spark Streaming y las arquitecturas Lambda y Kappa transforman el procesamiento en tiempo real.</p>
+          </div>
+          <div class="tl-item">
+            <div class="year">2020s</div>
+            <h4>IA integrada y edge</h4>
+            <p>Data lakes modernos, lakehouse, procesamiento en el borde y machine learning integrado en los pipelines.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FUTURO ============ -->
+      <section id="futuro">
+        <div class="sec-head">
+          <div class="sec-num">09</div>
+          <div>
+            <h2>Perspectivas de futuro</h2>
+            <p>Hacia dónde se dirige el procesamiento de datos.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="emoji">🤖</span>
+            <h4>IA Agéntica</h4>
+            <p>
+              Agentes autónomos que interpretan políticas de gobernanza, detectan anomalías y
+              optimizan pipelines sin intervención humana. Se proyecta que el 50% de las
+              organizaciones los usará hacia 2030.
+            </p>
+          </div>
+          <div class="card">
+            <span class="emoji">📡</span>
+            <h4>Edge Computing</h4>
+            <p>
+              Procesamiento cerca del origen de los datos. Se estima que el 75% de los datos
+              empresariales se generarán y procesarán en el borde. Clave para IoT, fábricas y
+              ciudades inteligentes.
+            </p>
+          </div>
+          <div class="card">
+            <span class="emoji">🧩</span>
+            <h4>Data Mesh</h4>
+            <p>
+              Arquitectura descentralizada que trata los datos como producto, con equipos de
+              dominio autónomos, infraestructura self-service y gobernanza federada.
+            </p>
+          </div>
+          <div class="card">
+            <span class="emoji">🕸️</span>
+            <h4>Data Fabric</h4>
+            <p>
+              Capa tecnológica que usa metadatos e IA para conectar y unificar datos en entornos
+              híbridos y multi-nube, sin moverlos físicamente.
+            </p>
+          </div>
+          <div class="card">
+            <span class="emoji">📄</span>
+            <h4>Datos no estructurados</h4>
+            <p>
+              Casi todos los casos de IA generativa requieren extraer y gobernar datos no
+              estructurados. El gasto en gestión multiestructurada crecerá significativamente.
+            </p>
+          </div>
+          <div class="card">
+            <span class="emoji">⚛️</span>
+            <h4>Computación cuántica</h4>
+            <p>
+              Promete revolucionar la optimización, simulación y criptografía. Aún experimental,
+              pero con avances hacia aplicaciones prácticas en análisis de datos masivos.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">🎓 Competencias que deberás desarrollar</div>
+          <p>
+            Además de la técnica, el futuro exige <strong>gobernanza de datos</strong>,
+            <strong>pensamiento arquitectónico</strong>, <strong>seguridad y privacidad</strong> y
+            <strong>capacidad de orquestar ecosistemas complejos</strong>. La calidad de datos dejará
+            de ser una tarea de ingeniería para convertirse en una función de negocio.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ IMPORTANCIA ============ -->
+      <section id="importancia">
+        <div class="sec-head">
+          <div class="sec-num">10</div>
+          <div>
+            <h2>Importancia en la Ingeniería de Sistemas</h2>
+            <p>Por qué esta disciplina es central en tu formación profesional.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="emoji">🎯</span>
+            <h4>Habilitador de decisiones</h4>
+            <p>Convierte los datos en activo estratégico: permite predecir tendencias, comprender clientes y optimizar operaciones.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">💰</span>
+            <h4>Motor de eficiencia</h4>
+            <p>Con datos organizados se aíslan y eliminan ineficiencias, reduciendo costos operativos y mejorando la productividad.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">🧠</span>
+            <h4>Competencia central</h4>
+            <p>En la era digital, analizar y usar datos es una habilidad vital para casi cualquier tarea de ingeniería y tecnología.</p>
+          </div>
+          <div class="card">
+            <span class="emoji">🏗️</span>
+            <h4>Base del diseño de sistemas</h4>
+            <p>Todo sistema moderno debe garantizar que los datos fluyan de forma eficiente, segura y confiable.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">🌐 Aplicaciones por dominio</div>
+          <p>
+            <strong>Finanzas:</strong> detección de fraude en tiempo real y gestión de riesgos ·
+            <strong>Salud:</strong> análisis clínico y monitoreo de pacientes ·
+            <strong>IoT:</strong> procesamiento en el borde de sensores industriales ·
+            <strong>Empresa:</strong> Business Intelligence y dashboards interactivos.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ GLOSARIO ============ -->
+      <section id="glosario">
+        <div class="sec-head">
+          <div class="sec-num">11</div>
+          <div>
+            <h2>Glosario técnico</h2>
+            <p>50 términos esenciales con definiciones y ejemplos del mundo real.</p>
+          </div>
+        </div>
+
+        <input type="search" class="search-box" id="glossSearch" placeholder="🔍 Buscar término… (ej: ETL, streaming, grafo)">
+        <div id="glossContainer"></div>
+        <p id="glossEmpty" style="display:none;text-align:center;color:var(--text-muted);padding:30px">
+          No se encontraron términos que coincidan con tu búsqueda.
+        </p>
+      </section>
+
+      <!-- ============ ACTIVIDADES ============ -->
+      <section id="actividades">
+        <div class="sec-head">
+          <div class="sec-num">12</div>
+          <div>
+            <h2>Evaluación final</h2>
+            <p>Consolida lo aprendido con este cuestionario de 10 preguntas.</p>
+          </div>
+        </div>
+
+        <p>
+          Responde cada pregunta. Recibirás retroalimentación inmediata con la explicación del
+          concepto. Al final verás tu puntuación total.
+        </p>
+
+        <div id="quizContainer"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="quizReset" style="display:none" onclick="resetQuiz()">🔄 Reintentar cuestionario</button>
+        </div>
+
+        <div class="score-box" id="scoreBox">
+          <div class="big" id="scoreValue">0/10</div>
+          <p id="scoreMessage"></p>
+          <div class="progress-track" style="max-width:340px;margin:18px auto 0">
+            <div class="progress-fill" id="scoreFill"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p><strong>Fundamentos del Procesamiento de Datos</strong> · Material didáctico para Ingeniería de Sistemas</p>
+      <p style="margin-top:8px;font-size:.76rem">Diseño instruccional progresivo · 12 secciones · 4 actividades interactivas</p>
+    </footer>
+  </div>
+</div>
+
+<button class="to-top" id="toTop" aria-label="Volver arriba">↑</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   1. NAVEGACIÓN, SCROLL SPY Y PROGRESO
+   ============================================================ */
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('main section');
+const crumbCurrent = document.getElementById('crumbCurrent');
+
+const sectionNames = {
+  inicio:'Inicio', conceptos:'Conceptos base', estructuras:'Estructuras de datos',
+  tipos:'Tipos de datos', ciclo:'Ciclo de procesamiento', paradigmas:'Batch vs Streaming',
+  almacenamiento:'Almacenamiento', bigdata:'Big Data', historia:'Evolución histórica',
+  futuro:'Perspectivas de futuro', importancia:'Importancia profesional',
+  glosario:'Glosario', actividades:'Evaluación final'
+};
+
+const spy = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id = e.target.id;
+      navLinks.forEach(l=>l.classList.toggle('active', l.getAttribute('href') === '#'+id));
+      if(sectionNames[id]) crumbCurrent.textContent = sectionNames[id];
+    }
+  });
+},{rootMargin:'-25% 0px -65% 0px', threshold:0});
+sections.forEach(s=>spy.observe(s));
+
+/* Barra de lectura */
+window.addEventListener('scroll',()=>{
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+  document.getElementById('readBarFill').style.width = pct + '%';
+  document.getElementById('toTop').classList.toggle('show', window.scrollY > 500);
+});
+
+document.getElementById('toTop').onclick = ()=> window.scrollTo({top:0,behavior:'smooth'});
+
+/* Menú móvil */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+document.getElementById('menuBtn').onclick = ()=>{
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+};
+overlay.onclick = ()=>{
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+};
+navLinks.forEach(l=> l.addEventListener('click', ()=>{
+  if(window.innerWidth <= 1024){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+}));
+
+/* Tema claro/oscuro */
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.onclick = ()=>{
+  document.body.classList.toggle('light');
+  themeBtn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+};
+
+/* ============================================================
+   2. TABS
+   ============================================================ */
+document.querySelectorAll('[data-tabs]').forEach(group=>{
+  const btns = group.querySelectorAll('.tab-btn');
+  const section = group.closest('section');
+  btns.forEach(btn=>{
+    btn.onclick = ()=>{
+      btns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      section.querySelectorAll('.tab-panel').forEach(p=>{
+        p.classList.toggle('active', p.dataset.panel === btn.dataset.tab);
+      });
+    };
+  });
+});
+
+/* ============================================================
+   3. FLIP CARDS
+   ============================================================ */
+document.querySelectorAll('.flip').forEach(c=>{
+  c.onclick = ()=> c.classList.toggle('flipped');
+});
+
+/* ============================================================
+   4. ACORDEONES (tecnologías + glosario)
+   ============================================================ */
+document.querySelectorAll('.acc-head').forEach(h=>{
+  h.onclick = ()=> h.parentElement.classList.toggle('open');
+});
+
+/* ============================================================
+   5. PIRÁMIDE DIKW INTERACTIVA
+   ============================================================ */
+document.querySelectorAll('.pyr-row').forEach(row=>{
+  row.onclick = ()=> showToast(row.dataset.info, 'ok', 5000);
+});
+
+/* ============================================================
+   6. TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg, type='', ms=2600){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), ms);
+}
+
+/* ============================================================
+   7. ACTIVIDADES DE ORDENAMIENTO (DIKW y CICLO)
+   ============================================================ */
+const sequences = {
+  dikw: {
+    correct: ['Datos','Información','Conocimiento','Sabiduría'],
+    user: [],
+    labels: {Datos:'🔢 Datos', Información:'📄 Información', Conocimiento:'📘 Conocimiento', Sabiduría:'🧠 Sabiduría'},
+    done: false
+  },
+  ciclo: {
+    correct: ['Recolección','Limpieza','Entrada','Transformación','Salida','Retroalimentación'],
+    user: [],
+    labels: {Recolección:'📥 Recolección', Limpieza:'🧹 Limpieza', Entrada:'💾 Entrada', Transformación:'⚙️ Transformación', Salida:'📊 Salida', Retroalimentación:'🔄 Retroalimentación'},
+    done: false
+  }
+};
+
+function initSequence(key){
+  const cfg = sequences[key];
+  cfg.user = [];
+  cfg.done = false;
+  renderChips(key);
+  renderSequence(key);
+}
+
+function renderChips(key){
+  const cfg = sequences[key];
+  const container = document.getElementById('chips-' + key);
+  const shuffled = [...cfg.correct].sort(()=> Math.random() - 0.5);
+  container.innerHTML = '';
+  shuffled.forEach(item=>{
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = cfg.labels[item];
+    btn.dataset.value = item;
+    btn.onclick = ()=>{
+      if(cfg.done) return;
+      cfg.user.push(item);
+      btn.classList.add('used');
+      renderSequence(key);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function renderSequence(key){
+  const cfg = sequences[key];
+  const box = document.getElementById('seq-' + key);
+  box.innerHTML = '';
+  if(cfg.user.length === 0){
+    box.innerHTML = '<span class="placeholder">Tu secuencia aparecerá aquí…</span>';
+    return;
+  }
+  cfg.user.forEach((item, i)=>{
+    const chip = document.createElement('span');
+    chip.className = 'seq-item';
+    chip.textContent = (i+1) + '. ' + cfg.labels[item];
+    chip.style.cursor = cfg.done ? 'default' : 'pointer';
+    chip.title = cfg.done ? '' : 'Clic para quitar';
+    chip.onclick = ()=>{
+      if(cfg.done) return;
+      cfg.user.splice(i,1);
+      const used = document.querySelector('#chips-'+key+' .chip[data-value="'+item+'"]');
+      if(used) used.classList.remove('used');
+      renderSequence(key);
+    };
+    box.appendChild(chip);
+  });
+}
+
+function resetSequence(key){
+  const cfg = sequences[key];
+  cfg.user = [];
+  cfg.done = false;
+  document.querySelectorAll('#chips-'+key+' .chip').forEach(c=>c.classList.remove('used'));
+  renderSequence(key);
+}
+
+function checkSequence(key){
+  const cfg = sequences[key];
+  if(cfg.user.length < cfg.correct.length){
+    showToast('⚠️ Completa la secuencia antes de verificar', 'err');
+    return;
+  }
+  const ok = cfg.user.every((v,i)=> v === cfg.correct[i]);
+  if(ok){
+    cfg.done = true;
+    showToast('✅ ¡Correcto! Orden perfecto.', 'ok');
+    markActivityDone('act-' + (key === 'dikw' ? 'dikw' : 'ciclo'));
+    const box = document.getElementById('seq-' + key);
+    box.style.borderColor = 'var(--success)';
+    box.style.borderStyle = 'solid';
+  } else {
+    showToast('❌ El orden no es correcto. Revisa e inténtalo de nuevo.', 'err');
+    const box = document.getElementById('seq-' + key);
+    box.style.borderColor = 'var(--danger)';
+    setTimeout(()=>{ box.style.borderColor = 'var(--border)'; }, 1200);
+  }
+}
+
+initSequence('dikw');
+initSequence('ciclo');
+
+/* ============================================================
+   8. ACTIVIDAD: CLASIFICAR TIPOS DE DATOS
+   ============================================================ */
+const classifyData = [
+  { text:'Tabla de clientes en una base de datos MySQL', type:'estructurado', explain:'Esquema fijo, formato tabular, almacenado en RDBMS.' },
+  { text:'Respuesta JSON de una API REST', type:'semiestructurado', explain:'Tiene claves que etiquetan los datos, pero los campos pueden variar entre respuestas.' },
+  { text:'Video de una cámara de vigilancia', type:'no estructurado', explain:'Contenido binario sin esquema predefinido; requiere visión por computadora.' },
+  { text:'Hoja de cálculo con ventas mensuales', type:'estructurado', explain:'Filas y columnas con tipos definidos: estructura tabular clásica.' },
+  { text:'Archivo XML de configuración', type:'semiestructurado', explain:'Etiquetas que estructuran el contenido de forma jerárquica, pero flexible.' },
+  { text:'Correos electrónicos de un buzón corporativo', type:'no estructurado', explain:'Texto libre con metadatos; requiere NLP para analizarse.' },
+  { text:'Registros de temperatura de sensores IoT cada minuto', type:'estructurado', explain:'Cada registro tiene timestamp, id y valor: esquema uniforme y tabular.' },
+  { text:'Grabación de audio de un call center', type:'no estructurado', explain:'Audio sin estructura; requiere transcripción y análisis de voz.' },
+  { text:'Página de Wikipedia con enlaces internos', type:'semiestructurado', explain:'El texto libre se combina con marcado HTML y enlaces estructurados.' },
+  { text:'Documento PDF escaneado', type:'no estructurado', explain:'Es una imagen del texto; requiere OCR para extraer datos.' }
+];
+
+const typeLabels = { estructurado:'Estructurado', semiestructurado:'Semiestructurado', 'no estructurado':'No estructurado' };
+
+function initClassify(){
+  const container = document.getElementById('classifyContainer');
+  container.innerHTML = '';
+  classifyData.forEach((item, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'classify-item';
+    div.innerHTML =
+      '<div class="txt">' + (idx+1) + '. ' + item.text + '</div>' +
+      '<div class="classify-opts">' +
+        '<button class="opt-btn" data-type="estructurado">Estructurado</button>' +
+        '<button class="opt-btn" data-type="semiestructurado">Semiestructurado</button>' +
+        '<button class="opt-btn" data-type="no estructurado">No estructurado</button>' +
+      '</div>' +
+      '<div class="feedback"></div>';
+
+    const feedback = div.querySelector('.feedback');
+    const buttons = div.querySelectorAll('.opt-btn');
+    let answered = false;
+
+    buttons.forEach(btn=>{
+      btn.onclick = ()=>{
+        if(answered) return;
+        answered = true;
+        const chosen = btn.dataset.type;
+        buttons.forEach(b=>{
+          b.classList.add('locked');
+          if(b.dataset.type === item.type) b.classList.add('correct');
+        });
+        if(chosen === item.type){
+          feedback.className = 'feedback ok';
+          feedback.textContent = '✅ Correcto. ' + item.explain;
+          showToast('✅ ¡Muy bien!', 'ok', 1600);
+        } else {
+          btn.classList.add('wrong');
+          feedback.className = 'feedback no';
+          feedback.textContent = '❌ La respuesta correcta es "' + typeLabels[item.type] + '". ' + item.explain;
+          showToast('❌ Revisa la explicación', 'err', 1800);
+        }
+        checkClassifyComplete();
+      };
+    });
+
+    container.appendChild(div);
+  });
+}
+
+let classifyAnswered = 0;
+function checkClassifyComplete(){
+  classifyAnswered++;
+  if(classifyAnswered >= classifyData.length){
+    markActivityDone('act-clasificar');
+    showToast('🎉 ¡Completaste la clasificación!', 'ok');
+  }
+}
+initClassify();
+
+/* ============================================================
+   9. ACTIVIDAD: BATCH vs STREAMING
+   ============================================================ */
+const paradigmData = [
+  { text:'Generar la nómina mensual de 10,000 empleados al cierre de mes.', answer:'batch', explain:'Tarea programada, no urgente, alto volumen y resultados históricos: batch es ideal.' },
+  { text:'Detectar en tiempo real una transacción fraudulenta con tarjeta de crédito.', answer:'streaming', explain:'La latencia debe ser mínima (milisegundos) para bloquear la transacción antes de que se complete.' },
+  { text:'Calcular un reporte anual de ventas por región para la junta directiva.', answer:'batch', explain:'Análisis histórico, gran volumen, resultados no urgentes: batch.' },
+  { text:'Monitorear sensores de una planta industrial y alertar si la temperatura excede el umbral.', answer:'streaming', explain:'Requiere detección inmediata de anomalías para evitar accidentes.' },
+  { text:'Entrenar un modelo de machine learning con 5 años de datos históricos.', answer:'batch', explain:'El entrenamiento se ejecuta sobre datos estáticos acotados; la latencia no es crítica.' },
+  { text:'Actualizar el feed de recomendaciones de una app de streaming de video.', answer:'streaming', explain:'Debe reaccionar al comportamiento del usuario en tiempo real para personalizar.' }
+];
+
+function initParadigm(){
+  const container = document.getElementById('paradigmContainer');
+  container.innerHTML = '';
+  paradigmData.forEach((item, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'classify-item';
+    div.innerHTML =
+      '<div class="txt">' + (idx+1) + '. ' + item.text + '</div>' +
+      '<div class="classify-opts">' +
+        '<button class="opt-btn" data-type="batch">📦 Batch</button>' +
+        '<button class="opt-btn" data-type="streaming">⚡ Streaming</button>' +
+      '</div>' +
+      '<div class="feedback"></div>';
+
+    const feedback = div.querySelector('.feedback');
+    const buttons = div.querySelectorAll('.opt-btn');
+    let answered = false;
+
+    buttons.forEach(btn=>{
+      btn.onclick = ()=>{
+        if(answered) return;
+        answered = true;
+        const chosen = btn.dataset.type;
+        buttons.forEach(b=>{
+          b.classList.add('locked');
+          if(b.dataset.type === item.answer) b.classList.add('correct');
+        });
+        if(chosen === item.answer){
+          feedback.className = 'feedback ok';
+          feedback.textContent = '✅ Correcto. ' + item.explain;
+        } else {
+          btn.classList.add('wrong');
+          feedback.className = 'feedback no';
+          feedback.textContent = '❌ La opción adecuada es ' + (item.answer === 'batch' ? 'Batch' : 'Streaming') + '. ' + item.explain;
+        }
+        checkParadigmComplete();
+      };
+    });
+    container.appendChild(div);
+  });
+}
+
+let paradigmAnswered = 0;
+function checkParadigmComplete(){
+  paradigmAnswered++;
+  if(paradigmAnswered >= paradigmData.length){
+    markActivityDone('act-paradigma');
+    showToast('🎉 ¡Completaste los escenarios!', 'ok');
+  }
+}
+initParadigm();
+
+/* ============================================================
+   10. PROGRESO DE ACTIVIDADES
+   ============================================================ */
+const activitiesDone = new Set();
+const TOTAL_ACTIVITIES = 4;
+
+function markActivityDone(id){
+  if(activitiesDone.has(id)) return;
+  activitiesDone.add(id);
+  updateProgress();
+}
+
+function updateProgress(){
+  const n = activitiesDone.size;
+  const pct = (n / TOTAL_ACTIVITIES) * 100;
+  document.getElementById('sideProgressFill').style.width = pct + '%';
+  document.getElementById('sideProgressText').textContent = n + ' de ' + TOTAL_ACTIVITIES + ' actividades completadas';
+  if(n === TOTAL_ACTIVITIES){
+    setTimeout(()=> showToast('🏆 ¡Completaste todas las actividades del módulo!', 'ok', 4000), 600);
+  }
+}
+
+/* ============================================================
+   11. GLOSARIO DINÁMICO
+   ============================================================ */
+const glossary = [
+  { t:'Dato', c:'Fundamentos', d:'Unidad mínima semántica que representa un hecho, valor o símbolo sin contexto ni interpretación.', e:'El número "38" aislado es un dato; no comunica nada hasta que se le asigna una unidad y contexto.' },
+  { t:'Información', c:'Fundamentos', d:'Datos procesados, organizados y contextualizados que adquieren significado y propósito para la toma de decisiones.', e:'"La temperatura del motor alcanzó 38.5 °C y supera el umbral de 35 °C" es información accionable.' },
+  { t:'Conocimiento', c:'Fundamentos', d:'Combinación de información, experiencia y juicio que permite comprender patrones, predecir y decidir.', e:'Saber que una temperatura sostenida sobre 35 °C indica falla en la refrigeración es conocimiento aplicado.' },
+  { t:'Jerarquía DIKW', c:'Fundamentos', d:'Modelo Data-Information-Knowledge-Wisdom que describe la progresión desde datos crudos hasta sabiduría.', e:'En un hospital: dato = "120/80"; información = "presión del paciente"; conocimiento = "hipertensión leve".' },
+  { t:'Estructura de datos', c:'Estructuras', d:'Formato específico para organizar, almacenar y recuperar datos eficientemente, definiendo relaciones y operaciones.', e:'Un GPS usa grafos para representar carreteras y calcular rutas óptimas.' },
+  { t:'Array', c:'Estructuras', d:'Estructura lineal y estática de elementos del mismo tipo en memoria contigua, con acceso O(1) por índice.', e:'Una imagen digital es un array bidimensional de píxeles RGB.' },
+  { t:'Lista enlazada', c:'Estructuras', d:'Estructura lineal dinámica donde cada nodo guarda un valor y un puntero al siguiente, permitiendo inserciones eficientes.', e:'El historial de un navegador es una lista doblemente enlazada.' },
+  { t:'Árbol', c:'Estructuras', d:'Estructura jerárquica no lineal de nodos sin ciclos. Los BST permiten búsquedas O(log n).', e:'El sistema de archivos de Linux es un árbol con raíz en "/".' },
+  { t:'Grafo', c:'Estructuras', d:'Estructura no lineal de vértices y aristas que representa relaciones arbitrarias entre elementos.', e:'Las redes sociales modelan amistades como un grafo.' },
+  { t:'Tabla hash', c:'Estructuras', d:'Estructura que mapea claves a valores mediante función hash, con búsqueda promedio O(1).', e:'Redis almacena pares clave-valor en memoria con latencias de microsegundos.' },
+  { t:'Heap', c:'Estructuras', d:'Árbol binario que mantiene el mínimo o máximo en la raíz; base de las colas de prioridad.', e:'Los schedulers de sistemas operativos usan heaps para priorizar procesos.' },
+  { t:'Pila (Stack)', c:'Estructuras', d:'Estructura LIFO donde el último elemento en entrar es el primero en salir.', e:'La función deshacer (Ctrl+Z) usa una pila de acciones.' },
+  { t:'Cola (Queue)', c:'Estructuras', d:'Estructura FIFO donde el primer elemento en entrar es el primero en salir.', e:'La cola de impresión de una oficina funciona como una cola.' },
+  { t:'Datos estructurados', c:'Tipos de datos', d:'Datos con esquema fijo y predefinido, organizados en formato tabular dentro de bases relacionales.', e:'Una tabla de clientes en MySQL con campos id, nombre y email.' },
+  { t:'Datos semiestructurados', c:'Tipos de datos', d:'Datos con cierta organización interna pero sin esquema rígido; permiten variabilidad entre instancias.', e:'Un JSON de API donde algunos productos tienen descuento y otros no.' },
+  { t:'Datos no estructurados', c:'Tipos de datos', d:'Datos sin modelo organizativo predefinido; requieren técnicas especializadas como NLP o visión por computadora.', e:'Videos de YouTube, imágenes de Instagram, correos y grabaciones de audio.' },
+  { t:'Base de datos relacional', c:'Almacenamiento', d:'Sistema que organiza datos en tablas relacionadas mediante claves, siguiendo el modelo relacional de Codd, con garantías ACID.', e:'MySQL, PostgreSQL y Oracle en sistemas bancarios y ERP.' },
+  { t:'Base de datos NoSQL', c:'Almacenamiento', d:'Familia de sistemas no relacionales diseñados para grandes volúmenes, alta velocidad y esquemas flexibles.', e:'MongoDB en catálogos de e-commerce con atributos variables.' },
+  { t:'Data Warehouse', c:'Almacenamiento', d:'Repositorio centralizado y estructurado, optimizado para consultas analíticas y reportes históricos.', e:'Snowflake, BigQuery y Redshift para Business Intelligence.' },
+  { t:'Data Lake', c:'Almacenamiento', d:'Repositorio que almacena datos en formato nativo sin transformación previa, con esquema en lectura.', e:'Un data lake en S3 con logs, videos, JSON y Parquet.' },
+  { t:'Data Lakehouse', c:'Almacenamiento', d:'Arquitectura híbrida que combina la flexibilidad del lake con transacciones ACID y rendimiento del warehouse.', e:'Databricks Lakehouse con Delta Lake o Apache Iceberg.' },
+  { t:'Procesamiento por lotes', c:'Paradigmas', d:'Paradigma que opera sobre conjuntos estáticos y acotados, ejecutándose en intervalos programados.', e:'Un banco calcula intereses cada noche para millones de clientes.' },
+  { t:'Procesamiento en streaming', c:'Paradigmas', d:'Paradigma que procesa flujos continuos e ilimitados, evento por evento, con latencia mínima.', e:'Netflix procesa eventos de reproducción en tiempo real para recomendar.' },
+  { t:'Micro-batch', c:'Paradigmas', d:'Enfoque intermedio que procesa pequeños lotes a intervalos muy cortos, simulando streaming.', e:'Spark Structured Streaming usa micro-batches por defecto.' },
+  { t:'Ventana temporal', c:'Paradigmas', d:'Mecanismo que agrupa eventos en intervalos de tiempo o por número de elementos para agregaciones.', e:'Calcular clics por minuto requiere una ventana de 60 segundos.' },
+  { t:'ETL', c:'Paradigmas', d:'Extract, Transform, Load: extrae datos, los transforma y luego los carga en el destino.', e:'Extraer de Salesforce, transformar formatos y cargar en Snowflake.' },
+  { t:'ELT', c:'Paradigmas', d:'Extract, Load, Transform: carga los datos primero y transforma después aprovechando la potencia del destino.', e:'Fivetran carga en BigQuery y dbt transforma después.' },
+  { t:'Pipeline de datos', c:'Paradigmas', d:'Conjunto de procesos interconectados que mueven y transforman datos desde fuentes hasta un destino final.', e:'Un pipeline de retail extrae ventas, las limpia y las publica en Power BI.' },
+  { t:'Arquitectura Lambda', c:'Paradigmas', d:'Arquitectura híbrida que combina una capa batch (precisa) con una capa streaming (rápida).', e:'Sistemas que necesitan exactitud histórica y alertas en tiempo real.' },
+  { t:'Big Data', c:'Big Data', d:'Conjunto de datos cuyo volumen, variedad y velocidad superan la capacidad de las herramientas tradicionales.', e:'Datos de miles de millones de dispositivos IoT y redes sociales.' },
+  { t:'Hadoop', c:'Big Data', d:'Framework de código abierto para procesamiento distribuido sobre clústeres commodity; incluye HDFS y MapReduce.', e:'Yahoo! procesó petabytes de datos de búsqueda con Hadoop.' },
+  { t:'MapReduce', c:'Big Data', d:'Modelo de programación paralela con fases Map (transforma a pares clave-valor) y Reduce (agrega).', e:'Contar palabras: Map emite (palabra,1) y Reduce suma los conteos.' },
+  { t:'Apache Spark', c:'Big Data', d:'Motor de procesamiento distribuido en memoria que soporta batch, streaming, ML y SQL.', e:'Uber lo usa para tarifas dinámicas y análisis de demanda.' },
+  { t:'Apache Kafka', c:'Big Data', d:'Plataforma distribuida de streaming de eventos con publish-subscribe, persistencia y tolerancia a fallos.', e:'LinkedIn procesa billones de eventos diarios con Kafka.' },
+  { t:'Calidad de datos', c:'Gobernanza', d:'Grado en que los datos cumplen dimensiones como exactitud, completitud, consistencia y oportunidad.', e:'Un CRM con emails duplicados reduce la efectividad de campañas.' },
+  { t:'Limpieza de datos', c:'Gobernanza', d:'Proceso de detección y corrección de errores, duplicados, valores nulos y datos atípicos.', e:'Eliminar duplicados y normalizar fechas antes de entrenar un modelo de ML.' },
+  { t:'Gobernanza de datos', c:'Gobernanza', d:'Políticas, procesos y estándares que garantizan disponibilidad, calidad, seguridad y cumplimiento de los datos.', e:'Un banco restringe el acceso a datos financieros según GDPR o HIPAA.' },
+  { t:'Linaje de datos', c:'Gobernanza', d:'Registro del origen, movimiento y transformaciones de los datos a lo largo de su ciclo de vida.', e:'Rastrear qué fuente originó un error en un reporte financiero.' },
+  { t:'Anonimización', c:'Gobernanza', d:'Proceso de eliminar o modificar identificadores personales para proteger la privacidad.', e:'Un hospital anonimiza registros antes de compartirlos con investigadores.' },
+  { t:'OLTP', c:'Análisis', d:'Sistemas optimizados para transacciones individuales en tiempo real con alta concurrencia.', e:'El sistema que procesa compras en Amazon es OLTP.' },
+  { t:'OLAP', c:'Análisis', d:'Sistemas optimizados para consultas analíticas complejas y multidimensionales sobre grandes volúmenes.', e:'Consultar ventas por región, producto y trimestre en un cubo OLAP.' },
+  { t:'Minería de datos', c:'Análisis', d:'Proceso de descubrir patrones, correlaciones y conocimiento oculto mediante estadística y machine learning.', e:'Detectar que quienes compran pañales también compran cerveza los viernes.' },
+  { t:'Business Intelligence', c:'Análisis', d:'Estrategias, tecnologías y herramientas para analizar datos y tomar decisiones informadas.', e:'Power BI, Tableau y Looker para dashboards ejecutivos.' },
+  { t:'Dashboard', c:'Análisis', d:'Interfaz visual que consolida KPIs y métricas relevantes para una organización o proceso.', e:'Un dashboard de monitoreo muestra CPU, memoria y latencia en tiempo real.' },
+  { t:'Edge Computing', c:'Tendencias', d:'Paradigma que traslada el procesamiento cerca del origen de los datos para reducir latencia.', e:'Un dron procesa imágenes a bordo para evitar obstáculos sin enviarlas a la nube.' },
+  { t:'Data Mesh', c:'Tendencias', d:'Arquitectura descentralizada que trata los datos como producto, con equipos de dominio autónomos.', e:'Marketing gestiona su dominio de datos y finanzas el suyo, con estándares comunes.' },
+  { t:'Data Fabric', c:'Tendencias', d:'Capa tecnológica que usa metadatos e IA para conectar y unificar datos en entornos híbridos sin moverlos.', e:'Acceder a datos de AWS, Azure y on-premise desde una sola interfaz.' },
+  { t:'IA Agéntica', c:'Tendencias', d:'Paradigma donde agentes de IA autónomos gestionan y optimizan tareas de procesamiento de datos.', e:'Un agente detecta caída de calidad, identifica la causa y ajusta el pipeline.' },
+  { t:'Latencia', c:'Métricas', d:'Tiempo transcurrido entre la emisión de una solicitud y la recepción de su respuesta.', e:'En trading algorítmico, milisegundos pueden valer millones.' },
+  { t:'Throughput', c:'Métricas', d:'Cantidad de datos o transacciones que un sistema puede procesar por unidad de tiempo.', e:'Un batch puede procesar millones de registros por hora pero con alta latencia.' },
+  { t:'Escalabilidad', c:'Métricas', d:'Capacidad de un sistema para manejar mayor carga añadiendo recursos sin degradar su rendimiento.', e:'Google escala horizontalmente con miles de servidores commodity.' },
+  { t:'Tolerancia a fallos', c:'Métricas', d:'Capacidad de un sistema para seguir operando correctamente ante fallos de alguno de sus componentes.', e:'HDFS replica cada bloque en tres nodos para garantizar disponibilidad.' }
+];
+
+function renderGlossary(filter=''){
+  const container = document.getElementById('glossContainer');
+  const empty = document.getElementById('glossEmpty');
+  const f = filter.trim().toLowerCase();
+  container.innerHTML = '';
+  let count = 0;
+
+  glossary.forEach(item=>{
+    const match = !f || item.t.toLowerCase().includes(f) || item.d.toLowerCase().includes(f) || item.c.toLowerCase().includes(f);
+    if(!match) return;
+    count++;
+
+    const div = document.createElement('div');
+    div.className = 'gloss-item';
+    div.innerHTML =
+      '<div class="gloss-head">' +
+        '<span class="term">' + item.t + '</span>' +
+        '<span class="cat">' + item.c + '</span>' +
+        '<span class="arrow">▼</span>' +
+      '</div>' +
+      '<div class="gloss-body">' +
+        '<p>' + item.d + '</p>' +
+        (item.e ? '<div class="ex"><b>Ejemplo:</b> ' + item.e + '</div>' : '') +
+      '</div>';
+
+    div.querySelector('.gloss-head').onclick = ()=> div.classList.toggle('open');
+    container.appendChild(div);
+  });
+
+  empty.style.display = count === 0 ? 'block' : 'none';
+}
+
+document.getElementById('glossSearch').addEventListener('input', e=> renderGlossary(e.target.value));
+renderGlossary();
+
+/* ============================================================
+   12. QUIZ FINAL
+   ============================================================ */
+const quizQuestions = [
+  { q:'¿Cuál es la unidad mínima semántica, sin contexto ni interpretación?',
+    o:['Información','Dato','Conocimiento','Sabiduría'], a:1,
+    e:'El dato es la representación cruda de un hecho. Solo al añadirle contexto se convierte en información.' },
+  { q:'¿Cómo se obtiene información a partir de datos?',
+    o:['Eliminando los datos duplicados','Procesándolos y añadiéndoles contexto','Almacenándolos en la nube','Comprimiéndolos'], a:1,
+    e:'La información resulta de procesar datos mediante contextualización, categorización, cálculo y corrección.' },
+  { q:'Un archivo JSON con campos variables entre instancias es un ejemplo de dato:',
+    o:['Estructurado','Semiestructurado','No estructurado','Binario puro'], a:1,
+    e:'JSON es semiestructurado: tiene claves que etiquetan los datos, pero no impone un esquema uniforme.' },
+  { q:'¿Qué estructura de datos permite acceso directo en tiempo O(1) mediante un índice?',
+    o:['Lista enlazada','Array','Árbol binario','Grafo'], a:1,
+    e:'El array almacena elementos en memoria contigua, permitiendo acceso directo por índice en tiempo constante.' },
+  { q:'¿Qué paradigma de procesamiento ofrece la menor latencia?',
+    o:['Batch','Streaming','Micro-batch nocturno','ETL tradicional'], a:1,
+    e:'El streaming procesa eventos a medida que llegan, con latencias de milisegundos a segundos.' },
+  { q:'¿Qué significa ETL?',
+    o:['Extract, Test, Load','Extract, Transform, Load','Evaluate, Transform, Link','Extract, Transfer, Log'], a:1,
+    e:'ETL = Extract, Transform, Load. La transformación ocurre antes de cargar los datos en el destino.' },
+  { q:'¿En qué repositorio se almacenan datos en su formato nativo, incluidos los no estructurados?',
+    o:['Data Warehouse','Data Lake','Base de datos relacional','OLTP'], a:1,
+    e:'El Data Lake almacena datos en formato nativo y aplica el esquema en la lectura (schema-on-read).' },
+  { q:'¿Cuáles son los 3V originales del Big Data según Doug Laney?',
+    o:['Volumen, Valor, Veracidad','Volumen, Variedad, Velocidad','Variedad, Veracidad, Valor','Velocidad, Valor, Virtualización'], a:1,
+    e:'Laney definió Volumen, Variedad y Velocidad en 2001. Luego se añadieron Veracidad y Valor.' },
+  { q:'¿Para qué se utiliza principalmente Apache Kafka?',
+    o:['Almacenar imágenes','Streaming de eventos en tiempo real','Indexar documentos','Entrenar modelos de ML'], a:1,
+    e:'Kafka es una plataforma distribuida de streaming de eventos con modelo publish-subscribe.' },
+  { q:'¿Qué busca principalmente la gobernanza de datos?',
+    o:['Aumentar el volumen almacenado','Garantizar disponibilidad, calidad, seguridad y cumplimiento','Reducir el costo del hardware','Eliminar los datos históricos'], a:1,
+    e:'La gobernanza define políticas y estándares para asegurar que los datos sean confiables, seguros y cumplan regulaciones.' }
+];
+
+let quizAnswered = 0;
+let quizScore = 0;
+
+function initQuiz(){
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+  quizAnswered = 0;
+  quizScore = 0;
+  document.getElementById('scoreBox').classList.remove('show');
+  document.getElementById('quizReset').style.display = 'none';
+
+  quizQuestions.forEach((q, i)=>{
+    const div = document.createElement('div');
+    div.className = 'quiz-q';
+    let html = '<div class="q-text"><span class="q-num">' + (i+1) + '</span><span>' + q.q + '</span></div>';
+    q.o.forEach((opt, j)=>{
+      html += '<button class="quiz-opt" data-q="' + i + '" data-o="' + j + '">' + String.fromCharCode(65+j) + ') ' + opt + '</button>';
+    });
+    html += '<div class="quiz-explain" id="explain-' + i + '"><b>Explicación:</b> ' + q.e + '</div>';
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll('.quiz-opt').forEach(btn=>{
+    btn.onclick = ()=>{
+      const qi = parseInt(btn.dataset.q);
+      const oi = parseInt(btn.dataset.o);
+      const questionDiv = btn.closest('.quiz-q');
+      if(questionDiv.dataset.answered) return;
+      questionDiv.dataset.answered = '1';
+
+      const correct = quizQuestions[qi].a;
+      const opts = questionDiv.querySelectorAll('.quiz-opt');
+      opts.forEach((o, k)=>{
+        o.classList.add('locked');
+        if(k === correct) o.classList.add('correct');
+      });
+
+      if(oi === correct){
+        quizScore++;
+        showToast('✅ ¡Correcto!', 'ok', 1400);
+      } else {
+        btn.classList.add('wrong');
+        showToast('❌ Respuesta incorrecta', 'err', 1600);
+      }
+
+      document.getElementById('explain-' + qi).classList.add('show');
+      quizAnswered++;
+
+      if(quizAnswered === quizQuestions.length){
+        finishQuiz();
+      }
+    };
+  });
+}
+
+function finishQuiz(){
+  const box = document.getElementById('scoreBox');
+  const total = quizQuestions.length;
+  const pct = (quizScore / total) * 100;
+
+  document.getElementById('scoreValue').textContent = quizScore + '/' + total;
+  document.getElementById('scoreFill').style.width = pct + '%';
+
+  let msg;
+  if(pct === 100) msg = '🏆 ¡Perfecto! Dominas los fundamentos del procesamiento de datos.';
+  else if(pct >= 80) msg = '🎉 ¡Excelente! Tienes una comprensión sólida de los conceptos.';
+  else if(pct >= 60) msg = '👍 Buen trabajo. Repasa las secciones donde fallaste para consolidar.';
+  else if(pct >= 40) msg = '📚 Vas por buen camino. Te recomendamos releer las secciones 1 a 5.';
+  else msg = '💪 No te desanimes. Repasa el material completo y vuelve a intentarlo.';
+
+  document.getElementById('scoreMessage').textContent = msg;
+  box.classList.add('show');
+  document.getElementById('quizReset').style.display = 'inline-flex';
+  box.scrollIntoView({behavior:'smooth', block:'center'});
+
+  // Marca la actividad del quiz como completada
+  if(!activitiesDone.has('quiz-final')){
+    activitiesDone.add('quiz-final');
+    // Ajustamos el contador: el quiz cuenta como actividad global
+    updateProgress();
+  }
+}
+
+function resetQuiz(){ initQuiz(); }
+initQuiz();
+
+/* ============================================================
+   13. INICIALIZACIÓN FINAL
+   ============================================================ */
+updateProgress();
+console.log('%c⚙️ Fundamentos del Procesamiento de Datos', 'color:#38bdf8;font-size:16px;font-weight:bold');
+console.log('%cMódulo interactivo para Ingeniería de Sistemas', 'color:#a78bfa;font-size:12px');
+</script>
+</body>
+</html>
