@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesamiento de Datos - Ingeniería de Sistemas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        violetBrand: '#8b5cf6',
+                        cyanBrand: '#06b6d4',
+                        darkBg: '#0b0f19',
+                        darkCard: 'rgba(17, 24, 39, 0.7)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #080c14;
+            color: #f3f4f6;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .slide-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.96) translateY(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 5rem 3rem 4.5rem 3rem;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            z-index: 10;
+        }
+
+        /* Glassmorphism effects */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s ease;
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(14, 165, 233, 0.15);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.6);
+        }
+
+        /* DIKW Pyramid CSS Diagram */
+        .dikw-level {
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+            transition: transform 0.3s ease;
+        }
+        .dikw-top {
+            clip-path: polygon(50% 0%, 50% 0%, 85% 100%, 15% 100%);
+        }
+
+        /* Code Block Styling */
+        pre code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="select-none">
+
+    <header class="fixed top-0 left-0 w-full z-50 flex flex-col">
+        <!-- Top Glow Border & Progress -->
+        <div class="w-full bg-gray-900/80 h-1.5 relative overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 w-0 transition-all duration-300 shadow-[0_0_12px_rgba(14,165,233,0.8)]"></div>
+        </div>
+        
+        <!-- Header Controls -->
+        <div class="px-6 py-3 flex justify-between items-center glass-card border-b border-white/5 backdrop-blur-md">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div>
+                    <h1 class="text-xs font-semibold tracking-wider text-cyan-400 uppercase">Ingeniería de Sistemas</h1>
+                    <p class="text-sm font-bold text-gray-200">Procesamiento de Datos</p>
+                </div>
+            </div>
+
+            <!-- Slide Counter & Quick Menu Trigger -->
+            <div class="flex items-center space-x-4">
+                <button id="open-index-btn" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/60 transition">
+                    <i class="fa-solid fa-list-ul text-cyan-400"></i>
+                    <span>Índice (<span id="current-slide-num">1</span>/37)</span>
+                </button>
+                <button id="fullscreen-btn" title="Pantalla completa" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700/60 transition">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="slide-container">
+
+        <!-- SLIDE 1: Portada -->
+        <section class="slide active justify-center items-center text-center relative overflow-hidden" id="slide-1">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.15)_0,transparent_70%)] pointer-events-none"></div>
+            <div class="max-w-4xl mx-auto z-10">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono uppercase tracking-widest mb-6">
+                    Módulo de Formación Profesional
+                </span>
+                <h1 class="text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
+                    Procesamiento de Datos y <br>
+                    <span class="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-500 bg-clip-text text-transparent glow-text">
+                        Estructuras Fundamentales
+                    </span>
+                </h1>
+                <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
+                    Un recorrido riguroso desde la teoría de la información y estructuras de memoria hasta arquitecturas modernas de Big Data en la nube.
+                </p>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="nextSlide()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold shadow-lg shadow-cyan-500/25 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                        <span>Iniciar Presentación</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 2: 1. Introducción al procesamiento de datos -->
+        <section class="slide justify-start" id="slide-2">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 01</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Introducción al Procesamiento de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center flex-1">
+                <div class="glass-card p-6 rounded-2xl border border-slate-800">
+                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-2xl mb-4">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">El Desafío de la Era Digital</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                        En la actualidad se generan zettabytes de datos desde sensores IoT, interacciones web, transacciones financieras y dispositivos móviles.
+                    </p>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Los datos puros en su estado natural carecen de utilidad práctica directa. La ingeniería de sistemas provee los mecanismos para transformar este "ruido digital" en activos utilizables.
+                    </p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col justify-center">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-gears text-indigo-400"></i> La Ecuación Fundamental
+                    </h3>
+                    <div class="bg-slate-900/80 p-6 rounded-xl border border-indigo-500/30 text-center font-mono my-4">
+                        <span class="text-cyan-400 font-bold text-lg">PROGRAMA</span> 
+                        <span class="text-slate-400">=</span> 
+                        <span class="text-indigo-400 font-bold text-lg">ALGORITMOS</span> 
+                        <span class="text-slate-400">+</span> 
+                        <span class="text-violet-400 font-bold text-lg">ESTRUCTURAS DE DATOS</span>
+                    </div>
+                    <p class="text-xs text-slate-400 italic text-center">Niklaus Wirth (Premio Turing 1984)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: 2. Concepto de procesamiento de datos -->
+        <section class="slide justify-start" id="slide-3">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 02</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Concepto de Procesamiento de Datos</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 mb-6">
+                <p class="text-slate-200 text-base leading-relaxed">
+                    Es la <strong class="text-cyan-400">técnica sistemática</strong> de recolectar datos de entrada, manipularlos mediante operaciones lógicas o aritméticas organizadas, y almacenarlos o transformarlos en un resultado estructurado de salida.
+                </p>
+            </div>
+            <!-- Interactive Diagram: Input -> Process -> Output -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center flex-1">
+                <div class="glass-card p-6 rounded-xl border-l-4 border-l-cyan-500 text-center">
+                    <i class="fa-solid fa-file-import text-3xl text-cyan-400 mb-3"></i>
+                    <h4 class="font-bold text-white">1. Entrada (Input)</h4>
+                    <p class="text-xs text-slate-400 mt-2">Captura, lectura y validación de datos en bruto.</p>
+                </div>
+                <div class="glass-card p-6 rounded-xl border-l-4 border-l-indigo-500 text-center relative">
+                    <i class="fa-solid fa-microchip text-3xl text-indigo-400 mb-3"></i>
+                    <h4 class="font-bold text-white">2. Procesamiento</h4>
+                    <p class="text-xs text-slate-400 mt-2">Cálculo, clasificación, ordenamiento, filtrado y agregación.</p>
+                </div>
+                <div class="glass-card p-6 rounded-xl border-l-4 border-l-emerald-500 text-center">
+                    <i class="fa-solid fa-chart-line text-3xl text-emerald-400 mb-3"></i>
+                    <h4 class="font-bold text-white">3. Salida (Output)</h4>
+                    <p class="text-xs text-slate-400 mt-2">Reportes, almacenamiento persistente, alertas o APIs.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: 3. Concepto de dato -->
+        <section class="slide justify-start" id="slide-4">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 03</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Concepto de Dato</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3">Definición Formal</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                            Un <strong class="text-cyan-400">dato</strong> es una representación simbólica (numérica, alfabética, algorítmica) de un atributo o variable cualitativa/cuantitativa.
+                        </p>
+                        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-700/80 mb-4 font-mono text-xs">
+                            <span class="text-purple-400">const</span> <span class="text-blue-400">tempSensor</span> = <span class="text-emerald-400">39.5</span>;
+                        </div>
+                    </div>
+                    <div class="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                        <span class="text-xs text-cyan-300 font-semibold"><i class="fa-solid fa-info-circle mr-1"></i> Propiedad Clave:</span>
+                        <p class="text-xs text-slate-300 mt-1">Carece de significado por sí mismo. No contiene intención ni contexto semántico explícito.</p>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-xl font-bold text-white mb-4">Atributos Técnicos de un Dato</h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-cyan-400 mt-1"></i>
+                            <div><strong>Atomisidad:</strong> Unidad mínima e indivisible de representación.</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-cyan-400 mt-1"></i>
+                            <div><strong>Tipo (Data Type):</strong> Define el dominio de valores permitidos y las operaciones válidas (entero, flotante, booleano, string).</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-cyan-400 mt-1"></i>
+                            <div><strong>Representación en Memoria:</strong> Codificación binaria (ASCII, UTF-8, IEEE 754 para coma flotante).</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 5: 4. Concepto de información -->
+        <section class="slide justify-start" id="slide-5">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 04</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Concepto de Información</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-white mb-3">Dato + Contexto = Información</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                        La <strong class="text-cyan-400">información</strong> es un conjunto de datos procesados, estructurados y puestos en contexto de modo que adquieren un propósito y utilidad directa para reducir la incertidumbre.
+                    </p>
+                    <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono">
+                        "La temperatura registrada en el servidor central #04 a las 14:00 hrs es de <span class="text-rose-400 font-bold">39.5 °C</span> (por encima del umbral crítico)."
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center">
+                    <h4 class="text-lg font-bold text-white mb-3">Impacto en la Toma de Decisiones</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Mientras que los datos se almacenan en bytes raw, la información permite emitir diagnósticos y ejecutar lógica condicional en un sistema informático.
+                    </p>
+                    <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-cyan-300">
+                        <i class="fa-solid fa-shield-halved mr-2"></i> Un sistema de monitoreo reacciona a la <strong>información</strong>, no únicamente a cadenas de bits aisladas.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: 5. Concepto de conocimiento -->
+        <section class="slide justify-start" id="slide-6">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 05</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Concepto de Conocimiento</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl mb-6">
+                <h3 class="text-xl font-bold text-white mb-2">Comprender los Patrones</h3>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    El <strong class="text-cyan-400">conocimiento</strong> surge al sintetizar múltiples fuentes de información, vinculándolas con la experiencia, reglas de negocio, modelos heurísticos y análisis comparativo.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-5 rounded-xl border-t-2 border-t-indigo-500">
+                    <h4 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-brain text-indigo-400 mr-2"></i>Perspectiva Humana</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Entender que si la temperatura del servidor excede los 39.5 °C durante tres días seguidos en las horas de mayor carga, el sistema de refrigeración está fallando o sobrecargado.
+                    </p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border-t-2 border-t-violet-500">
+                    <h4 class="font-bold text-white text-base mb-2"><i class="fa-solid fa-robot text-violet-400 mr-2"></i>Perspectiva de IA y Machine Learning</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Un modelo entrenado (red neuronal o árbol de decisión) extrae "conocimiento" en forma de pesos y hiperplanos capaces de predecir fallas futuras.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: 6. Concepto de sabiduría -->
+        <section class="slide justify-start" id="slide-7">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 06</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Concepto de Sabiduría y Pirámide DIKW</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center flex-1">
+                <!-- Interactive DIKW Pyramid -->
+                <div class="flex flex-col space-y-2 w-full max-w-md mx-auto">
+                    <div class="dikw-level dikw-top bg-gradient-to-r from-amber-500 to-orange-500 p-3 text-center rounded-t-lg shadow-lg">
+                        <span class="font-bold text-xs text-black uppercase tracking-wider">Sabiduría (Wisdom)</span>
+                    </div>
+                    <div class="dikw-level bg-gradient-to-r from-violet-600 to-indigo-600 p-3 text-center shadow-lg">
+                        <span class="font-bold text-xs text-white uppercase tracking-wider">Conocimiento (Knowledge)</span>
+                    </div>
+                    <div class="dikw-level bg-gradient-to-r from-blue-600 to-cyan-600 p-3 text-center shadow-lg">
+                        <span class="font-bold text-xs text-white uppercase tracking-wider">Información (Information)</span>
+                    </div>
+                    <div class="dikw-level bg-gradient-to-r from-slate-700 to-slate-800 p-3 text-center rounded-b-lg shadow-lg border border-slate-600">
+                        <span class="font-bold text-xs text-slate-300 uppercase tracking-wider">Dato (Data)</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-amber-400 mb-3"><i class="fa-solid fa-compass mr-2"></i>La Cúspide: Sabiduría</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                        Es la capacidad de aplicar el conocimiento evaluando su impacto ético, económico, estratégico y técnico a largo plazo.
+                    </p>
+                    <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-200">
+                        <strong>Ejemplo en Ingeniería:</strong> Rediseñar la arquitectura de la infraestructura a microservicios distribuidos sin servidor para prevenir caídas sistémicas en lugar de solo reemplazar ventiladores de refrigeración.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 8: 7. Datos según su estructura -->
+        <section class="slide justify-start" id="slide-8">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 07</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Datos según su Estructura</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-2xl border-t-4 border-t-cyan-500">
+                    <h3 class="text-lg font-bold text-white mb-2">Estructurados</h3>
+                    <p class="text-xs text-slate-300 mb-3">Esquema rígido (filas/columnas). Consultables directamente mediante SQL.</p>
+                    <div class="bg-slate-900 p-3 rounded-lg text-xs font-mono text-cyan-300 border border-slate-800">
+                        Tablas RDBMS, CSVs, Hojas de cálculo.
+                    </div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border-t-4 border-t-indigo-500">
+                    <h3 class="text-lg font-bold text-white mb-2">Semi-estructurados</h3>
+                    <p class="text-xs text-slate-300 mb-3">No siguen esquemas tabulares, pero poseen etiquetas organizadoras (self-describing).</p>
+                    <div class="bg-slate-900 p-3 rounded-lg text-xs font-mono text-indigo-300 border border-slate-800">
+                        JSON, XML, YAML, NoSQL Documental.
+                    </div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border-t-4 border-t-purple-500">
+                    <h3 class="text-lg font-bold text-white mb-2">No Estructurados</h3>
+                    <p class="text-xs text-slate-300 mb-3">Sin formato o estructura predefinida. Representan >80% de los datos del mundo.</p>
+                    <div class="bg-slate-900 p-3 rounded-lg text-xs font-mono text-purple-300 border border-slate-800">
+                        PDFs, Imágenes (PNG), Videos (MP4), Audios, Texto libre.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 9: 8. Definición de estructuras de datos -->
+        <section class="slide justify-start" id="slide-9">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 08</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Definición de Estructuras de Datos</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl mb-6">
+                <p class="text-slate-200 text-base leading-relaxed">
+                    Una <strong class="text-cyan-400">Estructura de Datos</strong> es una forma especializada de organizar, almacenar y gestionar datos en la memoria de un computador para que puedan ser accedidos y modificados de manera eficiente.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="font-bold text-white text-base mb-3"><i class="fa-solid fa-stopwatch text-cyan-400 mr-2"></i>Complejidad Temporal: O(n)</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Determina la eficiencia y el tiempo de ejecución que le toma a un algoritmo realizar búsquedas, ordenamientos e inserciones a medida que crece el tamaño de los datos.
+                    </p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="font-bold text-white text-base mb-3"><i class="fa-solid fa-memory text-indigo-400 mr-2"></i>Complejidad Espacial</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Define el consumo de memoria RAM adicional requerido por la estructura para gestionar punteros, índices y referencias de soporte.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 10: 9. Clasificación de estructuras de datos -->
+        <section class="slide justify-start" id="slide-10">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 09</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Clasificación de Estructuras de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-2">Por Gestión de Memoria</h4>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• <strong>Estáticas:</strong> Tamaño fijo asignado en compilación (ej. Arreglos).</li>
+                        <li>• <strong>Dinámicas:</strong> Asignación dinámica en tiempo de ejecución (ej. Listas enlazadas).</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-indigo-400 mb-2">Por Secuencia Lógica</h4>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• <strong>Lineales:</strong> Elementos adyacentes uno tras otro (Arreglos, Pilas, Colas).</li>
+                        <li>• <strong>No Lineales:</strong> Conexiones jerárquicas o en red (Árboles, Grafos).</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-purple-400 mb-2">Por Persistencia</h4>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• <strong>Volátiles:</strong> Residen en la memoria RAM (se borran al reiniciar).</li>
+                        <li>• <strong>Permanentes:</strong> Residen en discos/almacenamiento no volátil.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 11: 10. Arreglos -->
+        <section class="slide justify-start" id="slide-11">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 10</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Definición y Ejemplo de Arreglos (Arrays)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg mb-3">Propiedades</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            Colección finita y homogénea de elementos almacenados en posiciones de memoria **contiguas**. Permite acceso directo O(1) mediante índices.
+                        </p>
+                        <!-- Diagram of Array in Memory -->
+                        <div class="flex space-x-1 my-4 overflow-x-auto p-2 bg-slate-900 rounded-xl border border-slate-800">
+                            <div class="flex-1 bg-cyan-950 border border-cyan-500/50 p-2 text-center rounded">
+                                <span class="text-[10px] text-cyan-400 block font-mono">Index 0</span>
+                                <span class="font-bold text-white text-sm">10</span>
+                            </div>
+                            <div class="flex-1 bg-cyan-950 border border-cyan-500/50 p-2 text-center rounded">
+                                <span class="text-[10px] text-cyan-400 block font-mono">Index 1</span>
+                                <span class="font-bold text-white text-sm">25</span>
+                            </div>
+                            <div class="flex-1 bg-cyan-950 border border-cyan-500/50 p-2 text-center rounded">
+                                <span class="text-[10px] text-cyan-400 block font-mono">Index 2</span>
+                                <span class="font-bold text-white text-sm">42</span>
+                            </div>
+                            <div class="flex-1 bg-cyan-950 border border-cyan-500/50 p-2 text-center rounded">
+                                <span class="text-[10px] text-cyan-400 block font-mono">Index 3</span>
+                                <span class="font-bold text-white text-sm">99</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400">Ventaja: Acceso instantáneo | Desventaja: Tamaño fijo.</div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono block mb-2">// Código de Ejemplo (C++)</span>
+                    <pre><code class="text-cyan-300">#include &lt;iostream&gt;
+
+int main() {
+    // Declaración de arreglo estático de 4 enteros
+    int temperaturas[4] = {10, 25, 42, 99};
+
+    // Acceso O(1) por índice
+    std::cout &lt;&lt; temperaturas[2]; // Imprime 42
+
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 12: 11. Lista enlazada -->
+        <section class="slide justify-start" id="slide-12">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 11</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Definición y Ejemplo de Lista Enlazada</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg mb-3">Estructura Basada en Nodos</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            Colección dinámica donde los elementos no se almacenan de forma contigua. Cada nodo almacena el **Dato** y un **Puntero/Referencia** al siguiente nodo.
+                        </p>
+                        <!-- Node visual -->
+                        <div class="flex items-center space-x-2 my-4">
+                            <div class="flex rounded border border-indigo-500 bg-indigo-950 text-xs">
+                                <div class="p-2 border-r border-indigo-500 font-bold text-white">10</div>
+                                <div class="p-2 text-indigo-300 font-mono">ptr</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-indigo-400 text-xs"></i>
+                            <div class="flex rounded border border-indigo-500 bg-indigo-950 text-xs">
+                                <div class="p-2 border-r border-indigo-500 font-bold text-white">20</div>
+                                <div class="p-2 text-indigo-300 font-mono">nullptr</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400">Ventaja: Crecimiento dinámico | Desventaja: Búsqueda O(n).</div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono block mb-2"># Código de Ejemplo (Python)</span>
+                    <pre><code class="text-indigo-300">class Nodo:
+    def __init__(self, dato):
+        self.dato = dato
+        self.siguiente = None
+
+# Creación de lista dinámicamente
+cabeza = Nodo(10)
+cabeza.siguiente = Nodo(20)
+
+print(cabeza.siguiente.dato) # Salida: 20</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 13: 12. Pilas enlazadas -->
+        <section class="slide justify-start" id="slide-13">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 12</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Pilas Enlazadas (Stack - LIFO)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg mb-3">Política LIFO (Last In, First Out)</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            El último elemento en entrar es el primero en salir. Operaciones principales: <code class="text-cyan-400">push()</code> (apilar) y <code class="text-cyan-400">pop()</code> (desapilar).
+                        </p>
+                        <!-- Visual Stack -->
+                        <div class="w-32 mx-auto flex flex-col-reverse border-b-2 border-x-2 border-cyan-500 p-2 gap-1 rounded-b-lg bg-slate-900/50">
+                            <div class="bg-cyan-600/40 border border-cyan-400 text-center py-1 rounded text-xs font-bold">Elem 1</div>
+                            <div class="bg-cyan-600/40 border border-cyan-400 text-center py-1 rounded text-xs font-bold">Elem 2</div>
+                            <div class="bg-cyan-500 border border-cyan-300 text-center py-1 rounded text-xs font-bold text-white animate-pulse">TOP</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-2">Casos de Uso: Historial del navegador, Call Stack de ejecuciones.</div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono block mb-2">// Pila en JavaScript</span>
+                    <pre><code class="text-cyan-300">class Pila {
+    constructor() { this.items = []; }
+    push(elem) { this.items.push(elem); }
+    pop() { return this.items.pop(); }
+}
+
+const stack = new Pila();
+stack.push("Página A");
+stack.push("Página B");
+console.log(stack.pop()); // "Página B"</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 14: 13. Colas enlazadas -->
+        <section class="slide justify-start" id="slide-14">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 13</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Colas Enlazadas (Queue - FIFO)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg mb-3">Política FIFO (First In, First Out)</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            El primer elemento en entrar es el primero en salir. Operaciones principales: <code class="text-indigo-400">enqueue()</code> y <code class="text-indigo-400">dequeue()</code>.
+                        </p>
+                        <!-- Visual Queue -->
+                        <div class="flex items-center justify-between border-y-2 border-indigo-500 p-2 bg-slate-900/50 rounded my-4">
+                            <span class="text-[10px] text-indigo-400 font-mono">&lt;-- Salida (Front)</span>
+                            <div class="flex gap-1">
+                                <div class="bg-indigo-600 p-2 rounded text-xs font-bold">1°</div>
+                                <div class="bg-indigo-800 p-2 rounded text-xs font-bold">2°</div>
+                                <div class="bg-indigo-950 p-2 rounded text-xs font-bold">3°</div>
+                            </div>
+                            <span class="text-[10px] text-indigo-400 font-mono">&lt;-- Entrada (Rear)</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400">Casos de Uso: Colas de impresión, Message Brokers (RabbitMQ).</div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono block mb-2"># Cola en Python</span>
+                    <pre><code class="text-indigo-300">from collections import deque
+
+cola = deque()
+cola.append("Tarea 1")  # Enqueue
+cola.append("Tarea 2")  # Enqueue
+
+print(cola.popleft())  # Dequeue -> "Tarea 1"</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 15: 14. Árbol enlazado -->
+        <section class="slide justify-start" id="slide-15">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 14</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Árbol Enlazado (Tree)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-lg mb-3">Estructura Jerárquica No Lineal</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            Compuesta por un nodo raíz y subárboles de nodos hijos. Cada nodo contiene un valor y referencias a sus nodos hijos.
+                        </p>
+                        <!-- Visual Tree Diagram -->
+                        <div class="flex flex-col items-center gap-2 my-2">
+                            <div class="w-8 h-8 rounded-full bg-cyan-500 text-black font-bold flex items-center justify-center text-xs">Raíz</div>
+                            <div class="w-16 h-0.5 bg-slate-600"></div>
+                            <div class="flex gap-8">
+                                <div class="w-7 h-7 rounded-full bg-slate-800 border border-cyan-400 text-white font-bold flex items-center justify-center text-xs">Izq</div>
+                                <div class="w-7 h-7 rounded-full bg-slate-800 border border-cyan-400 text-white font-bold flex items-center justify-center text-xs">Der</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400">Casos de Uso: Sistemas de archivos, DOM HTML, Índices B-Tree en BD.</div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono block mb-2">// Nodo de Árbol Binario (Java)</span>
+                    <pre><code class="text-cyan-300">class NodoArbol {
+    int valor;
+    NodoArbol izquierdo;
+    NodoArbol derecho;
+
+    NodoArbol(int val) {
+        this.valor = val;
+    }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 16: 15. Tipos de almacenamiento -->
+        <section class="slide justify-start" id="slide-16">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 15</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Tipos de Almacenamiento</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-2xl border-l-4 border-l-cyan-500">
+                    <h3 class="font-bold text-white text-base mb-2">Bloques (SAN / NVMe)</h3>
+                    <p class="text-xs text-slate-300">División en bloques de tamaño fijo. Alto rendimiento y baja latencia. Usado directamente por motores de Bases de Datos.</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border-l-4 border-l-indigo-500">
+                    <h3 class="font-bold text-white text-base mb-2">Archivos (NAS / NFS)</h3>
+                    <p class="text-xs text-slate-300">Organización jerárquica basada en directorios y carpetas compartidas en red.</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border-l-4 border-l-violet-500">
+                    <h3 class="font-bold text-white text-base mb-2">Objetos (S3 / Blob)</h3>
+                    <p class="text-xs text-slate-300">Almacena datos como objetos con metadatos e ID único. Escalabilidad ilimitada en la nube para Big Data.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 17: 16. Bases de datos relacionales -->
+        <section class="slide justify-start" id="slide-17">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 16</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Bases de Datos Relacionales (RDBMS)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Modelo Relacional (SQL)</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Basadas en esquemas estrictos con tablas interconectadas por claves primarias y foráneas. Garantizan propiedades **ACID**.
+                    </p>
+                    <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 text-xs text-cyan-300 font-mono">
+                        PostgreSQL, MySQL, Oracle, SQL Server
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Garantía ACID</h3>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• <strong>A (Atomicidad):</strong> O se ejecuta la transacción completa o no se ejecuta nada.</li>
+                        <li>• <strong>C (Consistencia):</strong> Transición válida entre estados de datos.</li>
+                        <li>• <strong>I (Aislamiento):</strong> Transacciones concurrentes aisladas.</li>
+                        <li>• <strong>D (Durabilidad):</strong> Persistencia garantizada post-commit.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 18: 17. Bases de datos NoSQL -->
+        <section class="slide justify-start" id="slide-18">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 17</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Bases de Datos NoSQL</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-file-code text-2xl text-cyan-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs mb-1">Documentales</h4>
+                    <p class="text-[11px] text-slate-400">Guardan JSONs flexibles.</p>
+                    <span class="text-[10px] text-cyan-300 block font-mono mt-2">MongoDB</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-key text-2xl text-indigo-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs mb-1">Clave-Valor</h4>
+                    <p class="text-[11px] text-slate-400">Lectura ultra-rápida en RAM.</p>
+                    <span class="text-[10px] text-indigo-300 block font-mono mt-2">Redis</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-table-columns text-2xl text-purple-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs mb-1">Columnares</h4>
+                    <p class="text-[11px] text-slate-400">Escalabilidad masiva.</p>
+                    <span class="text-[10px] text-purple-300 block font-mono mt-2">Cassandra</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-circle-nodes text-2xl text-emerald-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs mb-1">Grafos</h4>
+                    <p class="text-[11px] text-slate-400">Nodos y relaciones.</p>
+                    <span class="text-[10px] text-emerald-300 block font-mono mt-2">Neo4j</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 19: 18. Data Warehouse -->
+        <section class="slide justify-start" id="slide-19">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 18</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Data Warehouse (DW)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Repositorio Analítico Centralizado</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Diseñado para análisis de datos **estructurados** provenientes de sistemas OLTP. Optimizado para consultas complejas de Inteligencia de Negocios (BI).
+                    </p>
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-400">
+                        Enfoque: <strong>Schema-on-Write</strong> (se define el esquema antes de guardar).
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Tecnologías Modernas</h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 bg-cyan-950/40 rounded-lg border border-cyan-800/40 font-mono text-cyan-300">Snowflake</div>
+                        <div class="p-3 bg-cyan-950/40 rounded-lg border border-cyan-800/40 font-mono text-cyan-300">Google BigQuery</div>
+                        <div class="p-3 bg-cyan-950/40 rounded-lg border border-cyan-800/40 font-mono text-cyan-300">Amazon Redshift</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 20: 19. Data Lake -->
+        <section class="slide justify-start" id="slide-20">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 19</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Data Lake</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Almacenamiento en Formato Nativo</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Guarda volúmenes masivos de datos **estructurados, semi-estructurados y no estructurados** sin requerir transformación previa.
+                    </p>
+                    <div class="p-3 bg-indigo-950/40 rounded-xl border border-indigo-800/40 text-xs text-indigo-300">
+                        Enfoque: <strong>Schema-on-Read</strong> (el esquema se aplica al consultar).
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-amber-400 text-lg mb-3"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Riesgo: Data Swamp</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Sin gobernanza ni calidad de datos adecuada, un Data Lake se degrada rápidamente en un "pantano de datos" inútil e inasequible.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 21: 20. Data Lakehouse -->
+        <section class="slide justify-start" id="slide-21">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 20</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Data Lakehouse</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl mb-6">
+                <h3 class="text-xl font-bold text-cyan-400 mb-2">Lo Mejor de Ambos Mundos</h3>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Arquitectura moderna que combina la **flexibilidad y bajo costo del Data Lake** con el **control transaccional ACID y gobernanza del Data Warehouse**.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-layer-group text-2xl text-cyan-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs">Tablas ACID</h4>
+                    <p class="text-[11px] text-slate-400 mt-1">Delta Lake, Apache Iceberg.</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-bolt text-2xl text-indigo-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs">Consultas Directas</h4>
+                    <p class="text-[11px] text-slate-400 mt-1">Motor SQL sobre almacenamiento de objetos.</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <i class="fa-solid fa-robot text-2xl text-violet-400 mb-2"></i>
+                    <h4 class="font-bold text-white text-xs">Soporte IA / ML</h4>
+                    <p class="text-[11px] text-slate-400 mt-1">Acceso directo para data scientists.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 22: 21. Definición de procesamiento -->
+        <section class="slide justify-start" id="slide-22">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 21</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Definición General de Procesamiento</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-center">
+                <h3 class="text-2xl font-bold text-white mb-4">Transformación Algorítmica</h3>
+                <p class="text-slate-300 text-base leading-relaxed mb-6">
+                    El <strong class="text-cyan-400">Procesamiento</strong> es la ejecución secuencial o paralela de instrucciones automatizadas que aceptan estados iniciales y producen estados derivados mediante lógica determinista.
+                </p>
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-slate-400">
+                    Estado A (Entrada) ➔ Transición (Función f(x)) ➔ Estado B (Resultado)
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 23: 22. Definición de procesamiento de datos -->
+        <section class="slide justify-start" id="slide-23">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 22</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Definición de Procesamiento de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Enfoque Computacional</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Manipulación digital de datos mediante software para cambiar su formato, verificar su integridad, realizar cálculos matemáticos y enriquecer su valor de negocio.
+                    </p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Operaciones Clave</h3>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• Cleaning & Normalización</li>
+                        <li>• Filtering & Aggregation</li>
+                        <li>• Joins & Enrichment</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 24: 23. Tipos de procesamiento de datos -->
+        <section class="slide justify-start" id="slide-24">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 23</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Tipos de Procesamiento de Datos</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-1">Centralizado</h4>
+                    <p class="text-xs text-slate-300">Un único servidor o mainframe realiza todo el cómputo.</p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-indigo-400 mb-1">Distribuido</h4>
+                    <p class="text-xs text-slate-300">Múltiples nodos en clúster (Apache Spark) dividen la carga.</p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-purple-400 mb-1">Tiempo Real</h4>
+                    <p class="text-xs text-slate-300">Procesamiento inmediato sub-segundo para respuestas instantáneas.</p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-emerald-400 mb-1">Por Lotes (Batch)</h4>
+                    <p class="text-xs text-slate-300">Acumulación previa y procesamiento masivo programado.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 25: 24. Procesamiento por lotes (Batch) -->
+        <section class="slide justify-start" id="slide-25">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 24</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Procesamiento por Lotes (Batch)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Características</h3>
+                    <ul class="text-xs text-slate-300 space-y-3">
+                        <li>• Alta latencia, pero alto throughput (volumen/tiempo).</li>
+                        <li>• Se ejecuta sin intervención humana en horarios programados (ej. 2:00 AM).</li>
+                        <li>• Eficiencia óptima de cómputo sobre grandes dataset estáticos.</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Casos de Uso e Impulsores</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Cálculo de nóminas, generación de reportes mensuales, entrenamiento de modelos ML.
+                    </p>
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-cyan-300">
+                        Tecnologías: Hadoop MapReduce, AWS Glue, Apache Spark Batch.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 26: 25. Procesamiento en streaming -->
+        <section class="slide justify-start" id="slide-26">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 25</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Procesamiento en Streaming</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Flujo Continuo de Eventos</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Procesa datos en tiempo real registro por registro a medida que son generados por las fuentes.
+                    </p>
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-indigo-300">
+                        Latencia: Milisegundos / Segundos
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Herramientas Clave</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2 bg-indigo-950/40 rounded border border-indigo-800/40 font-mono text-indigo-300">Apache Kafka</div>
+                        <div class="p-2 bg-indigo-950/40 rounded border border-indigo-800/40 font-mono text-indigo-300">Apache Flink</div>
+                        <div class="p-2 bg-indigo-950/40 rounded border border-indigo-800/40 font-mono text-indigo-300">AWS Kinesis</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 27: 26. Arquitectura Lambda -->
+        <section class="slide justify-start" id="slide-27">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 26</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Arquitectura Lambda</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-between">
+                <h3 class="font-bold text-white text-lg mb-2">Unión de Batch + Speed</h3>
+                <p class="text-xs text-slate-300 mb-4">
+                    Patrón híbrido diseñado para balancear precisión y latencia.
+                </p>
+                <!-- SVG Diagram for Lambda -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="flex justify-around items-center text-xs font-mono">
+                        <div class="p-2 bg-cyan-950 border border-cyan-500 rounded text-cyan-300">Data Sources</div>
+                        <i class="fa-solid fa-arrow-right text-slate-500"></i>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-2 bg-indigo-950 border border-indigo-500 rounded text-indigo-300">Batch Layer (Precisión)</div>
+                            <div class="p-2 bg-purple-950 border border-purple-500 rounded text-purple-300">Speed Layer (Tiempo Real)</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-slate-500"></i>
+                        <div class="p-2 bg-emerald-950 border border-emerald-500 rounded text-emerald-300">Serving Layer (Consultas)</div>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Permite responder consultas históricas precisas y eventos en vivo simultáneamente.</div>
+            </div>
+        </section>
+
+        <!-- SLIDE 28: 27. Microbatch -->
+        <section class="slide justify-start" id="slide-28">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 27</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Microbatch</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-center">
+                <h3 class="font-bold text-cyan-400 text-xl mb-3">Enfoque Híbrido</h3>
+                <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                    Divide el flujo continuo de datos en pequeños paquetes dispersos en ventanas de tiempo muy cortas (ej. cada 500 ms).
+                </p>
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
+                    Flujo Continuo ➔ [ Batch 500ms ] ➔ [ Batch 500ms ] ➔ Procesamiento
+                </div>
+                <span class="text-xs text-slate-400 mt-4 block">Ejemplo: Spark Structured Streaming (modo predeterminado).</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 29: 28. Evolución histórica -->
+        <section class="slide justify-start" id="slide-29">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 28</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Evolución Histórica del Procesamiento</h2>
+            </div>
+            <!-- Timeline Container -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 flex-1 items-center">
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyan-500 text-center">
+                    <span class="text-xs font-bold text-cyan-400 block">1890</span>
+                    <span class="text-[11px] font-bold text-white block mt-1">Tarjetas Perforadas</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Herman Hollerith & Censo EE.UU.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-indigo-500 text-center">
+                    <span class="text-xs font-bold text-indigo-400 block">1970</span>
+                    <span class="text-[11px] font-bold text-white block mt-1">Modelo Relacional</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Edgar F. Codd y lenguaje SQL.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-purple-500 text-center">
+                    <span class="text-xs font-bold text-purple-400 block">2000s</span>
+                    <span class="text-[11px] font-bold text-white block mt-1">Era Big Data</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Hadoop, HDFS y MapReduce.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-violet-500 text-center">
+                    <span class="text-xs font-bold text-violet-400 block">2010s</span>
+                    <span class="text-[11px] font-bold text-white block mt-1">Real-Time & RAM</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Apache Spark y Kafka.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-emerald-500 text-center">
+                    <span class="text-xs font-bold text-emerald-400 block">2020s+</span>
+                    <span class="text-[11px] font-bold text-white block mt-1">Lakehouse & Cloud</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Modern Data Stack & IA Native.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 30: 29. Ingesta de datos -->
+        <section class="slide justify-start" id="slide-30">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 29</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Ingesta de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Definición</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Proceso inicial de transportación de datos desde fuentes heterogéneas hacia un sistema de almacenamiento centralizado.
+                    </p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Modalidades</h3>
+                    <ul class="text-xs text-slate-300 space-y-3">
+                        <li>• <strong>Pull:</strong> El pipeline solicita los datos activamente mediante APIs / CDC.</li>
+                        <li>• <strong>Push:</strong> La fuente envía eventos directamente al receptor (Webhooks, Agentes IoT).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 31: 30. Pipeline de datos -->
+        <section class="slide justify-start" id="slide-31">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 30</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Pipeline de Datos (Data Pipeline)</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-between">
+                <h3 class="font-bold text-white text-lg mb-2">Tubería Automatizada</h3>
+                <p class="text-xs text-slate-300 mb-4">
+                    Cadena programada de elementos de procesamiento de software que traslada datos del punto A al punto B aplicando transformaciones intermedias.
+                </p>
+                <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono">
+                    <span class="text-cyan-400">Origen</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600"></i>
+                    <span class="text-indigo-400">Ingesta</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600"></i>
+                    <span class="text-purple-400">Transformación</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600"></i>
+                    <span class="text-emerald-400">Destino Analítico</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Herramientas de Orquestación: Apache Airflow, Prefect, Dagster.</div>
+            </div>
+        </section>
+
+        <!-- SLIDE 32: 31. ETL -->
+        <section class="slide justify-start" id="slide-32">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 31</span>
+                <h2 class="text-3xl font-bold text-white mt-1">ETL (Extract, Transform, Load)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-xl border-t-4 border-t-cyan-500">
+                    <h4 class="font-bold text-white text-sm mb-2">1. Extract</h4>
+                    <p class="text-xs text-slate-300">Extracción de fuentes operacionales (Bases relacionales, APIs).</p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border-t-4 border-t-indigo-500">
+                    <h4 class="font-bold text-white text-sm mb-2">2. Transform</h4>
+                    <p class="text-xs text-slate-300">Transformación de datos en servidor intermedio **antes** de cargar.</p>
+                </div>
+                <div class="glass-card p-5 rounded-xl border-t-4 border-t-purple-500">
+                    <h4 class="font-bold text-white text-sm mb-2">3. Load</h4>
+                    <p class="text-xs text-slate-300">Carga final en el Data Warehouse estructurado.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 33: 32. ELT -->
+        <section class="slide justify-start" id="slide-33">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 32</span>
+                <h2 class="text-3xl font-bold text-white mt-1">ELT (Extract, Load, Transform)</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-white text-lg mb-3">Paradigma Moderno Cloud</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Los datos crudos se cargan **directamente** en el Data Lake / Warehouse y se aprovecha el cómputo distribuido de la nube para transformarlos **in-situ**.
+                    </p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-cyan-400 text-lg mb-3">Ecosistema Modern Data Stack</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Desacoplamiento total entre almacenamiento y cómputo.
+                    </p>
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-slate-300">
+                        Herramienta Estándar: <strong>dbt (data build tool)</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 34: 33. Importancia y auge del procesamiento -->
+        <section class="slide justify-start" id="slide-34">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 33</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Importancia y Auge del Procesamiento de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div class="glass-card p-5 rounded-2xl">
+                    <i class="fa-solid fa-chart-pie text-2xl text-cyan-400 mb-3"></i>
+                    <h4 class="font-bold text-white text-sm mb-2">Decisiones Data-Driven</h4>
+                    <p class="text-xs text-slate-300">Eliminación de la intuición a favor de métricas exactas en tiempo real.</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl">
+                    <i class="fa-solid fa-robot text-2xl text-indigo-400 mb-3"></i>
+                    <h4 class="font-bold text-white text-sm mb-2">Sustento para IA y ML</h4>
+                    <p class="text-xs text-slate-300">Los modelos de IA dependen 100% de pipelines de datos limpios y masivos.</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl">
+                    <i class="fa-solid fa-coins text-2xl text-purple-400 mb-3"></i>
+                    <h4 class="font-bold text-white text-sm mb-2">Monetización</h4>
+                    <p class="text-xs text-slate-300">Creación de nuevos productos digitales altamente personalizados.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 35: 34. Ingeniería de datos -->
+        <section class="slide justify-start" id="slide-35">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 34</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Ingeniería de Datos (Data Engineering)</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-between border-l-4 border-l-cyan-500">
+                <h3 class="font-bold text-white text-xl mb-3"><i class="fa-solid fa-wrench text-cyan-400 mr-2"></i>El Arquitecto de Infraestructura</h3>
+                <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                    Disciplina enfocada en **diseñar, construir y mantener** la infraestructura, pipelines y almacenes de datos escalables para garantizar la disponibilidad, limpieza y rapidez de los datos.
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono text-slate-400">
+                    <div class="bg-slate-900 p-2 rounded">Stack: SQL, Python, Spark, Kafka, Airflow, Cloud</div>
+                    <div class="bg-slate-900 p-2 rounded">Output: Pipelines robustos & Data Lakehouses</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 36: 35 & 36. Ciencia y Análisis de Datos -->
+        <section class="slide justify-start" id="slide-36">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Temas 35 & 36</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Ciencia de Datos y Análisis de Datos</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                <div class="glass-card p-6 rounded-2xl border-t-4 border-t-indigo-500">
+                    <h3 class="font-bold text-white text-lg mb-2"><i class="fa-solid fa-flask text-indigo-400 mr-2"></i>35. Ciencia de Datos</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                        Modelado estadístico y Machine Learning para predecir comportamientos futuros y encontrar patrones ocultos.
+                    </p>
+                    <span class="text-[11px] text-indigo-300 font-mono">Enfoque: Predicción y Modelos ML.</span>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-t-4 border-t-purple-500">
+                    <h3 class="font-bold text-white text-lg mb-2"><i class="fa-solid fa-magnifying-glass-chart text-purple-400 mr-2"></i>36. Análisis de Datos</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                        Interpretación de datos históricos mediante Business Intelligence (BI) para responder preguntas de negocio inmediatas.
+                    </p>
+                    <span class="text-[11px] text-purple-300 font-mono">Enfoque: Dashboards y KPIs.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 37: 37. Conclusiones -->
+        <section class="slide justify-start" id="slide-37">
+            <div class="mb-6">
+                <span class="text-cyan-400 font-mono text-xs uppercase tracking-wider">Tema 37</span>
+                <h2 class="text-3xl font-bold text-white mt-1">Conclusiones</h2>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex-1 flex flex-col justify-between">
+                <ul class="space-y-4 text-sm text-slate-200">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-cyan-400 mt-1"></i>
+                        <div>El procesamiento de datos es el pilar fundamental que transforma simples bits en decisiones estratégicas.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-cyan-400 mt-1"></i>
+                        <div>La elección adecuada de estructuras de datos en memoria optimiza el uso de CPU y RAM.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-cyan-400 mt-1"></i>
+                        <div>Las arquitecturas modernas (Lakehouse, Streaming, ELT) permiten procesar volúmenes masivos con baja latencia.</div>
+                    </li>
+                </ul>
+                <div class="p-4 bg-gradient-to-r from-cyan-950 to-indigo-950 rounded-xl border border-cyan-500/30 text-center">
+                    <h4 class="text-lg font-bold text-cyan-400">¡Gracias por su atención!</h4>
+                    <p class="text-xs text-slate-400 mt-1">Espacio abierto para preguntas y debate técnico.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full z-50 glass-card border-t border-white/5 py-3 px-6 flex justify-between items-center backdrop-blur-md">
+        <div class="text-xs text-slate-400 font-mono">
+            Atajos: <span class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-200">←</span> <span class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-200">→</span> / <span class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-200">Espacio</span>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button id="prev-btn" onclick="prevSlide()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700/60 transition flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-chevron-left"></i>
+                <span>Anterior</span>
+            </button>
+            <button id="next-btn" onclick="nextSlide()" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-lg shadow-cyan-600/20 transition flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                <span>Siguiente</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <div id="index-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden justify-center items-center p-4">
+        <div class="glass-card max-w-4xl w-full max-h-[85vh] rounded-2xl flex flex-col border border-slate-700 overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-ul text-cyan-400"></i> Índices de la Presentación (37 Temas)
+                </h3>
+                <button id="close-index-btn" class="text-slate-400 hover:text-white p-1 rounded-lg text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="index-list" class="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array of topics for index modal rendering
+        const topics = [
+            "Portada",
+            "1. Introducción al procesamiento de datos",
+            "2. Concepto de procesamiento de datos",
+            "3. Concepto de dato",
+            "4. Concepto de información",
+            "5. Concepto de conocimiento",
+            "6. Concepto de sabiduría",
+            "7. Datos según su estructura",
+            "8. Definición de estructuras de datos",
+            "9. Clasificación de estructuras de datos",
+            "10. Definición y ejemplo de arreglos",
+            "11. Definición y ejemplo de lista enlazada",
+            "12. Definición y ejemplo de pilas enlazadas",
+            "13. Definición y ejemplo de colas enlazadas",
+            "14. Definición y ejemplo de árbol enlazado",
+            "15. Tipos de almacenamiento",
+            "16. Bases de datos relacionales",
+            "17. Bases de datos NoSQL",
+            "18. Data Warehouse",
+            "19. Data Lake",
+            "20. Data Lakehouse",
+            "21. Definición de procesamiento",
+            "22. Definición de procesamiento de datos",
+            "23. Tipos de procesamiento de datos",
+            "24. Procesamiento por lotes (batch)",
+            "25. Procesamiento en streaming",
+            "26. Arquitectura Lambda",
+            "27. Microbatch",
+            "28. Evolución histórica del procesamiento",
+            "29. Ingesta de datos",
+            "30. Pipeline de datos",
+            "31. ETL",
+            "32. ELT",
+            "33. Importancia y auge del procesamiento",
+            "34. Ingeniería de datos",
+            "35 & 36. Ciencia y Análisis de Datos",
+            "37. Conclusiones"
+        ];
+
+        let currentSlide = 1;
+        const totalSlides = 37;
+
+        // UI Element References
+        const currentSlideNumEl = document.getElementById('current-slide-num');
+        const progressBarEl = document.getElementById('progress-bar');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const indexModal = document.getElementById('index-modal');
+        const openIndexBtn = document.getElementById('open-index-btn');
+        const closeIndexBtn = document.getElementById('close-index-btn');
+        const indexListEl = document.getElementById('index-list');
+
+        // Initialize Index List Modal Content
+        topics.forEach((topic, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `text-left p-2.5 rounded-lg text-xs font-medium border transition flex items-center justify-between ${idx + 1 === currentSlide ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50' : 'bg-slate-900/60 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'}`;
+            btn.innerHTML = `<span class="truncate">${topic}</span> <span class="text-[10px] opacity-60 font-mono">#${idx + 1}</span>`;
+            btn.onclick = () => {
+                goToSlide(idx + 1);
+                closeModal();
+            };
+            indexListEl.appendChild(btn);
+        });
+
+        function updateSlideUI() {
+            // Update Active Slide Class
+            document.querySelectorAll('.slide').forEach((slide, idx) => {
+                if (idx + 1 === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update Progress Bar & Counter
+            currentSlideNumEl.textContent = currentSlide;
+            const progressPercent = ((currentSlide - 1) / (totalSlides - 1)) * 100;
+            progressBarEl.style.width = `${progressPercent}%`;
+
+            // Update Button States
+            prevBtn.disabled = currentSlide === 1;
+            nextBtn.disabled = currentSlide === totalSlides;
+
+            // Update Modal Buttons Highlight
+            Array.from(indexListEl.children).forEach((child, idx) => {
+                if (idx + 1 === currentSlide) {
+                    child.className = 'text-left p-2.5 rounded-lg text-xs font-medium border transition flex items-center justify-between bg-cyan-500/20 text-cyan-300 border-cyan-500/50';
+                } else {
+                    child.className = 'text-left p-2.5 rounded-lg text-xs font-medium border transition flex items-center justify-between bg-slate-900/60 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white';
+                }
+            });
+        }
+
+        function goToSlide(slideNum) {
+            if (slideNum >= 1 && slideNum <= totalSlides) {
+                currentSlide = slideNum;
+                updateSlideUI();
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlideUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlideUI();
+            }
+        }
+
+        // Keyboard Navigation Listener
+        document.addEventListener('keydown', (e) => {
+            if (indexModal.classList.contains('flex')) {
+                if (e.key === 'Escape') closeModal();
+                return;
+            }
+
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Modal Controls
+        function openModal() {
+            indexModal.classList.remove('hidden');
+            indexModal.classList.add('flex');
+        }
+
+        function closeModal() {
+            indexModal.classList.add('hidden');
+            indexModal.classList.remove('flex');
+        }
+
+        openIndexBtn.onclick = openModal;
+        closeIndexBtn.onclick = closeModal;
+
+        // Fullscreen Toggle
+        document.getElementById('fullscreen-btn').onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
+
+        // Initialize UI
+        updateSlideUI();
+    </script>
+</body>
+</html>
